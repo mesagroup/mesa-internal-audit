@@ -1,5 +1,5 @@
 """
-Internal Audit POC — Streamlit UI (PROCOMP design system)
+Internal Audit POC — Streamlit UI (MESA ERM design system v1.0)
 """
 
 from __future__ import annotations
@@ -19,35 +19,52 @@ from core.report_generator import generate_pdf_report
 load_dotenv()
 
 st.set_page_config(
-    page_title="Internal Audit — PROCOMP",
+    page_title="Internal Audit — MESA ERM",
     page_icon="🔎",
     layout="wide",
 )
 
-# ── Design tokens ────────────────────────────────────────────────────────────
+# ── MESA ERM Design System CSS ────────────────────────────────────────────────
 
-PROCOMP_CSS = """
+MESA_CSS = """
 <style>
-/* ── Tokens ── */
+/* ── Design Tokens ── */
 :root {
-  --primary:        #2C3E7A;
-  --primary-bg:     #eef1f9;
-  --primary-hover:  #f5f5f5;
-  --border:         #f0f0f0;
-  --text:           rgba(0,0,0,.88);
-  --text-secondary: rgba(0,0,0,.45);
-  --radius:         6px;
-  --radius-lg:      8px;
+  --primary:          #7BAF2E;
+  --primary-logo:     #95C11F;
+  --primary-bg:       #f6ffed;
+  --primary-hover:    #6a9a26;
+  --bg-hover:         #f5f5f5;
+  --bg-page:          #f5f5f5;
+  --bg-submenu:       #fafafa;
+  --border:           #f0f0f0;
+  --text:             rgba(0,0,0,.88);
+  --text-secondary:   rgba(0,0,0,.45);
+  --text-user:        #595959;
+  --text-toggle:      #8c8c8c;
+  --text-logo-esa:    #BDBDBD;
+  --radius:           6px;
+  --radius-lg:        8px;
+  --menu-item-h:      40px;
+  --font:             -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                      'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 }
 
 /* ── Global ── */
 html, body, [class*="css"] {
-  font-family: 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: var(--font) !important;
+  font-size: 14px !important;
 }
 
 /* ── Hide Streamlit chrome ── */
 #MainMenu, footer { visibility: hidden; }
 .stDeployButton, [data-testid="stToolbar"] { display: none !important; }
+
+/* ── Page background ── */
+.stApp,
+[data-testid="stAppViewContainer"] {
+  background: var(--bg-page) !important;
+}
 
 /* ── Sidebar shell ── */
 [data-testid="stSidebar"] {
@@ -58,29 +75,73 @@ html, body, [class*="css"] {
   padding: 0 !important;
 }
 
-/* ── Sidebar sections ── */
-.procomp-logo-area {
+/* ── Scrollbar (6px — spec §9) ── */
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 3px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.3); }
+* { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.15) transparent; }
+
+/* ═══════════════════════════════════════
+   ZONA A — Logo
+════════════════════════════════════════ */
+.mesa-logo-area {
   height: 44px;
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  justify-content: center;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
 }
 
-.nav-section-label {
+/* ═══════════════════════════════════════
+   ZONA B — Quick Nav
+════════════════════════════════════════ */
+.sidebar-quicknav {
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 4px 0;
+}
+.quicknav-item {
+  display: flex;
+  align-items: center;
+  height: var(--menu-item-h);
+  padding: 0 16px 0 24px;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  border-radius: var(--radius);
+  margin: 0 4px;
+  transition: background .15s ease;
+  text-decoration: none;
+  user-select: none;
+}
+.quicknav-item:hover { background: var(--bg-hover); }
+.quicknav-item svg { flex-shrink: 0; color: var(--text-secondary); }
+.quicknav-item .qnav-label { flex: 1; }
+.quicknav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  padding: 16px 24px 4px;
-  margin: 0;
+  line-height: 1;
 }
 
-/* ── Radio → nav items ── */
+/* ═══════════════════════════════════════
+   ZONA C — Radio → nav items
+════════════════════════════════════════ */
 [data-testid="stSidebar"] .stRadio { padding: 0 4px; }
 
-/* Hide widget label ("controllo") — target all Streamlit label wrappers */
+/* hide widget label */
 [data-testid="stSidebar"] .stRadio > label,
 [data-testid="stSidebar"] .stRadio [data-testid="stWidgetLabel"],
 [data-testid="stSidebar"] .stRadio > div > label:first-child {
@@ -94,20 +155,21 @@ html, body, [class*="css"] {
   font-size: 14px;
 }
 
-/* label wrapper */
+/* option label */
 [data-testid="stSidebar"] .stRadio label {
   display: flex !important;
   align-items: center !important;
-  min-height: 40px !important;
-  padding: 0 16px 0 20px !important;
+  min-height: var(--menu-item-h) !important;
+  padding: 0 16px 0 24px !important;
   border-radius: var(--radius) !important;
   cursor: pointer !important;
   transition: background .15s !important;
   color: var(--text) !important;
   font-size: 14px !important;
+  font-weight: 400 !important;
 }
 [data-testid="stSidebar"] .stRadio label:hover {
-  background: var(--primary-hover) !important;
+  background: var(--bg-hover) !important;
 }
 [data-testid="stSidebar"] .stRadio label:has(input:checked) {
   background: var(--primary-bg) !important;
@@ -118,35 +180,46 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] .stRadio label:has(input:checked)::after {
   content: '';
   position: absolute;
-  right: 0; top: 6px; bottom: 6px;
+  right: 0; top: 4px; bottom: 4px;
   width: 3px;
   background: var(--primary);
   border-radius: 3px 0 0 3px;
 }
 
-/* Hide radio circle: input + custom SVG/div indicator before stMarkdownContainer */
+/* hide radio input + custom indicator SVG */
 [data-testid="stSidebar"] .stRadio input[type="radio"],
 [data-testid="stSidebar"] .stRadio label > div:not([data-testid="stMarkdownContainer"]),
 [data-testid="stSidebar"] .stRadio label > span:not([data-testid="stMarkdownContainer"]) {
   display: none !important;
 }
 
-/* ── Sidebar divider ── */
-[data-testid="stSidebar"] hr {
-  border-color: var(--border) !important;
-  margin: 8px 0 !important;
+/* nav section labels */
+.nav-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 16px 24px 4px;
+  margin: 0;
 }
 
-/* ── Sidebar status list ── */
+/* sidebar divider */
+[data-testid="stSidebar"] hr {
+  border-color: var(--border) !important;
+  margin: 6px 0 !important;
+}
+
+/* ── Status rows ── */
 .status-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 20px;
-  font-size: 13px;
+  padding: 4px 16px;
+  font-size: 12px;
   color: var(--text);
 }
-.status-row span.ctrl-id {
+.status-row .ctrl-id {
   font-weight: 600;
   color: var(--primary);
   margin-right: 4px;
@@ -157,19 +230,23 @@ html, body, [class*="css"] {
   background: var(--primary) !important;
 }
 
-/* ── User footer ── */
+/* ═══════════════════════════════════════
+   ZONA D — User footer
+════════════════════════════════════════ */
 .user-footer {
-  width: 100%;
-  background: #fff;
   border-top: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: 8px;
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 8px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background .15s;
 }
+.user-footer:hover { background: var(--bg-hover); }
 .user-avatar {
-  width: 28px; height: 28px;
+  width: 24px; height: 24px;
   border-radius: 50%;
   background: var(--primary);
   color: #fff;
@@ -179,32 +256,37 @@ html, body, [class*="css"] {
   flex-shrink: 0;
 }
 .user-name-text {
-  font-size: 13px;
-  color: #595959;
+  font-size: 14px;
+  color: var(--text-user);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── Main content ── */
+/* ═══════════════════════════════════════
+   CONTENT AREA — white card (spec §4)
+════════════════════════════════════════ */
 .main .block-container {
-  padding: 28px 36px !important;
+  background: #ffffff !important;
+  border-radius: var(--radius-lg) !important;
+  margin: 12px !important;
+  padding: 16px 24px !important;
   max-width: 100% !important;
 }
 
 /* ── Page header ── */
 .page-header {
   border-bottom: 1px solid var(--border);
-  padding-bottom: 16px;
-  margin-bottom: 24px;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
 }
 .page-header h2 {
-  margin: 0 0 2px 0;
-  font-size: 20px;
+  margin: 0 0 4px 0;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text);
 }
-.page-header .area-chip {
+.area-chip {
   display: inline-block;
   background: var(--primary-bg);
   color: var(--primary);
@@ -214,57 +296,29 @@ html, body, [class*="css"] {
   font-weight: 500;
 }
 
-/* ── Cards ── */
-.audit-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  margin-bottom: 16px;
-}
-.audit-card h4 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-
 /* ── Metric cards ── */
-.metric-grid {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
+.metric-grid { display: flex; gap: 12px; margin-bottom: 20px; }
 .metric-card {
   flex: 1;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  padding: 14px 18px;
   text-align: center;
 }
 .metric-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--primary);
-  line-height: 1.2;
+  font-size: 26px; font-weight: 600;
+  color: var(--primary); line-height: 1.2;
 }
 .metric-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 4px;
+  font-size: 12px; color: var(--text-secondary); margin-top: 4px;
 }
 
 /* ── Status badges ── */
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 12px; font-weight: 500; white-space: nowrap;
 }
 .badge-conforme        { background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f; }
 .badge-non_conforme    { background:#fff2f0; color:#cf1322; border:1px solid #ffa39e; }
@@ -272,14 +326,11 @@ html, body, [class*="css"] {
 .badge-non_verificabile{ background:#fafafa; color:#8c8c8c; border:1px solid #d9d9d9; }
 .badge-pending         { background:#fafafa; color:#8c8c8c; border:1px solid #d9d9d9; }
 
-/* ── Check-point expanders ── */
+/* ── Expanders ── */
 [data-testid="stExpander"] {
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-lg) !important;
   margin-bottom: 6px !important;
-}
-[data-testid="stExpander"] summary {
-  font-size: 13px !important;
 }
 
 /* ── Buttons ── */
@@ -287,6 +338,7 @@ html, body, [class*="css"] {
   border-radius: var(--radius) !important;
   font-size: 14px !important;
   color: var(--text) !important;
+  font-family: var(--font) !important;
 }
 .stButton > button[kind="primary"] {
   background: var(--primary) !important;
@@ -294,8 +346,8 @@ html, body, [class*="css"] {
   color: #ffffff !important;
 }
 .stButton > button[kind="primary"]:hover {
-  background: #1e2d5f !important;
-  border-color: #1e2d5f !important;
+  background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
   color: #ffffff !important;
 }
 .stButton > button:disabled,
@@ -306,17 +358,12 @@ html, body, [class*="css"] {
   cursor: not-allowed !important;
 }
 
-/* ── File uploader ── */
-[data-testid="stFileUploader"] {
-  border-radius: var(--radius-lg) !important;
-}
-
 /* ── Alerts ── */
 [data-testid="stAlert"] { border-radius: var(--radius) !important; }
 </style>
 """
 
-st.markdown(PROCOMP_CSS, unsafe_allow_html=True)
+st.markdown(MESA_CSS, unsafe_allow_html=True)
 
 # ── Session state ─────────────────────────────────────────────────────────────
 
@@ -344,17 +391,40 @@ def pending_badge() -> str:
     return '<span class="badge badge-pending">○ Da eseguire</span>'
 
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# ── SVG icon helpers (14px, Ant Design outlined style) ────────────────────────
 
-# Logo
+def icon_home():
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>'
+
+
+def icon_star():
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+
+
+def icon_search():
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+
+
+def icon_bell():
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>'
+
+
+def icon_fact_check():
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/><line x1="15" y1="8" x2="19" y2="8"/><line x1="15" y1="12" x2="19" y2="12"/><line x1="15" y1="16" x2="19" y2="16"/></svg>'
+
+
+# ── Sidebar — ZONA A: Logo ────────────────────────────────────────────────────
+
 st.sidebar.markdown("""
-<div class="procomp-logo-area">
-  <svg viewBox="0 0 180 44" height="22" aria-label="PROCOMP">
-    <text x="4" y="34" font-family="'Helvetica Neue',Arial,sans-serif"
-          font-size="36" font-weight="200" fill="#2C3E7A">P</text>
-    <text x="24" y="34" font-family="'Helvetica Neue',Arial,sans-serif"
-          font-size="36" font-weight="200" fill="#BDBDBD">ROCOMP</text>
-    <rect x="162" y="10" width="8" height="8" rx="1" fill="#2C3E7A"/>
+<div class="mesa-logo-area">
+  <svg viewBox="0 0 180 44" height="22" aria-label="MESA ERM">
+    <text x="4" y="34"
+          font-family="'Helvetica Neue','Arial','Inter',system-ui,sans-serif"
+          font-size="42" font-weight="200" fill="#95C11F">M</text>
+    <text x="34" y="34"
+          font-family="'Helvetica Neue','Arial','Inter',system-ui,sans-serif"
+          font-size="42" font-weight="200" fill="#BDBDBD">ESA</text>
+    <rect x="138" y="10" width="8" height="8" rx="1" fill="#95C11F"/>
   </svg>
 </div>
 """, unsafe_allow_html=True)
@@ -363,7 +433,22 @@ st.sidebar.markdown("""
 if not os.environ.get("OPENAI_API_KEY"):
     st.sidebar.warning("API key non configurata", icon="⚠️")
 
-# Nav — controlli
+# ── Sidebar — ZONA B: Quick Nav ───────────────────────────────────────────────
+
+st.sidebar.markdown(f"""
+<div class="sidebar-quicknav">
+  <div class="quicknav-item">{icon_home()}<span class="qnav-label">Home</span></div>
+  <div class="quicknav-item">{icon_star()}<span class="qnav-label">Preferiti</span></div>
+  <div class="quicknav-item">{icon_search()}<span class="qnav-label">Cerca</span></div>
+  <div class="quicknav-item">
+    {icon_bell()}
+    <span class="qnav-label">Notifiche</span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Sidebar — ZONA C: Navigazione Controlli ───────────────────────────────────
+
 st.sidebar.markdown('<p class="nav-section-label">Controlli</p>', unsafe_allow_html=True)
 
 selected_id = st.sidebar.radio(
@@ -382,7 +467,9 @@ for c in CONTROLS_TREE:
     res = st.session_state.results.get(c.id)
     b = badge_html(res.overall_status) if res else pending_badge()
     st.sidebar.markdown(
-        f'<div class="status-row"><span><span class="ctrl-id">{c.id}</span>{c.title[:28]}…</span>{b}</div>',
+        f'<div class="status-row">'
+        f'<span><span class="ctrl-id">{c.id}</span>{c.title[:26]}…</span>{b}'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -391,14 +478,18 @@ st.sidebar.markdown("---")
 executed = len(st.session_state.results)
 total = len(CONTROLS_TREE)
 st.sidebar.progress(executed / total if total else 0)
-st.sidebar.caption(f"Progresso: {executed} / {total} controlli eseguiti")
+st.sidebar.caption(f"Progresso: {executed} / {total} controlli")
 
 st.sidebar.markdown("---")
 
 # Azioni
 if executed > 0:
     if st.sidebar.button("Genera report PDF", type="primary", use_container_width=True):
-        results_list = [st.session_state.results[c.id] for c in CONTROLS_TREE if c.id in st.session_state.results]
+        results_list = [
+            st.session_state.results[c.id]
+            for c in CONTROLS_TREE
+            if c.id in st.session_state.results
+        ]
         out_path = Path("reports") / f"audit_report_{os.getpid()}.pdf"
         out_path.parent.mkdir(exist_ok=True)
         generate_pdf_report(results_list, out_path)
@@ -416,7 +507,8 @@ if st.sidebar.button("Reset", use_container_width=True):
     st.session_state.uploaded = {}
     st.rerun()
 
-# User footer
+# ── Sidebar — ZONA D: User footer ─────────────────────────────────────────────
+
 st.sidebar.markdown("""
 <div class="user-footer">
   <div class="user-avatar">AU</div>
@@ -516,7 +608,6 @@ if result:
 
     nc = sum(1 for cp in result.check_points if cp.status == "non_conforme")
 
-    # Metric cards
     st.markdown(f"""
     <div class="metric-grid">
       <div class="metric-card">
@@ -538,8 +629,7 @@ if result:
 
     st.markdown("**Dettaglio check points:**")
     for i, cp in enumerate(result.check_points, 1):
-        label = f"{i}. {cp.check_point[:100]}"
-        with st.expander(label):
+        with st.expander(f"{i}. {cp.check_point[:100]}"):
             st.markdown(badge_html(cp.status), unsafe_allow_html=True)
             st.markdown(f"**Evidenza:** {cp.evidence or '—'}")
             if cp.issue:

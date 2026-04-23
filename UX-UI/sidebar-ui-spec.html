@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MESA ERM — Sidebar & Navigation UI Specification</title>
+<style>
+  /* ── Document styling ── */
+  :root {
+    --doc-bg: #f8f9fa;
+    --doc-text: #212529;
+    --doc-muted: #6c757d;
+    --doc-border: #dee2e6;
+    --doc-card-bg: #fff;
+    --doc-code-bg: #f1f3f5;
+    --mesa-green: #7BAF2E;
+    --mesa-green-logo: #95C11F;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--doc-bg); color: var(--doc-text); line-height: 1.6; padding: 40px 24px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 8px; color: var(--mesa-green); }
+  h2 { font-size: 22px; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--mesa-green); }
+  h3 { font-size: 17px; margin: 24px 0 12px; color: #333; }
+  h4 { font-size: 15px; margin: 16px 0 8px; color: #555; }
+  p, li { font-size: 14px; margin-bottom: 8px; }
+  .subtitle { color: var(--doc-muted); font-size: 14px; margin-bottom: 32px; }
+  code { background: var(--doc-code-bg); padding: 2px 6px; border-radius: 3px; font-size: 13px; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; font-size: 13px; line-height: 1.5; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .card { background: var(--doc-card-bg); border: 1px solid var(--doc-border); border-radius: 8px; padding: 20px; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th, td { padding: 10px 12px; border: 1px solid var(--doc-border); text-align: left; }
+  th { background: #f1f3f5; font-weight: 600; }
+  .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 3px; vertical-align: middle; margin-right: 6px; border: 1px solid rgba(0,0,0,0.1); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  .tag-green { background: #f0fae0; color: #4a7a0a; }
+  .tag-gray { background: #f1f3f5; color: #495057; }
+  .tag-blue { background: #e7f5ff; color: #1971c2; }
+  .tag-orange { background: #fff4e6; color: #e8590c; }
+  .note { background: #fff9db; border-left: 4px solid #fab005; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; }
+  .note strong { color: #e67700; }
+  .info { background: #e7f5ff; border-left: 4px solid #1c7ed6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; }
+  .info strong { color: #1864ab; }
+  .flex-demo { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  .flex-demo > div { flex: 1; min-width: 280px; }
+  .ascii-box { font-family: monospace; font-size: 12px; white-space: pre; background: #f8f9fa; padding: 16px; border: 1px solid var(--doc-border); border-radius: 8px; line-height: 1.4; }
+  .toc { background: var(--doc-card-bg); border: 1px solid var(--doc-border); border-radius: 8px; padding: 16px 24px; margin-bottom: 32px; }
+  .toc h3 { margin: 0 0 8px; font-size: 15px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { font-size: 13px; margin-bottom: 4px; }
+  .toc a { color: var(--mesa-green); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  @media print { body { padding: 20px; } pre { white-space: pre-wrap; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>MESA ERM — Sidebar &amp; Navigation UI Specification</h1>
+<p class="subtitle">v1.0 — 25 Febbraio 2026 &nbsp;|&nbsp; Documento tecnico per replicare il menu laterale, l'header e la modalita' mobile in un altro applicativo</p>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h3>Indice</h3>
+  <ol>
+    <li><a href="#s1">Tech Stack &amp; Design System</a></li>
+    <li><a href="#s2">Color Palette &amp; Theme Tokens</a></li>
+    <li><a href="#s3">Typography</a></li>
+    <li><a href="#s4">Layout Generale (Shell)</a></li>
+    <li><a href="#s5">Sidebar — Struttura &amp; Dimensioni</a></li>
+    <li><a href="#s6">Sidebar — Zone (4 aree)</a></li>
+    <li><a href="#s7">Menu Items — Stati &amp; Stili</a></li>
+    <li><a href="#s8">Header / Top Bar</a></li>
+    <li><a href="#s9">Scrollbar personalizzate</a></li>
+    <li><a href="#s10">Mobile &amp; Responsive</a></li>
+    <li><a href="#s11">Animazioni &amp; Transizioni</a></li>
+    <li><a href="#s12">CSS Completo (Copy-Paste)</a></li>
+    <li><a href="#s13">Wireframe ASCII</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s1">1. Tech Stack &amp; Design System</h2>
+
+<table>
+  <tr><th>Layer</th><th>Tecnologia</th><th>Versione</th></tr>
+  <tr><td>UI Framework</td><td>Ant Design (antd)</td><td>5.22.x</td></tr>
+  <tr><td>Frontend</td><td>React + TypeScript</td><td>19.x</td></tr>
+  <tr><td>Router</td><td>react-router-dom</td><td>7.x</td></tr>
+  <tr><td>State</td><td>Zustand</td><td>5.x</td></tr>
+  <tr><td>Build</td><td>Vite</td><td>6.x</td></tr>
+  <tr><td>CSS</td><td>Ant Design CSS-in-JS (nessun CSS esterno)</td><td>—</td></tr>
+  <tr><td>Icons</td><td>@ant-design/icons</td><td>5.x</td></tr>
+</table>
+
+<div class="info">
+  <strong>Nota:</strong> Il progetto non usa Tailwind CSS, file CSS/SCSS separati ne' CSS modules. Tutto lo styling passa attraverso Ant Design <code>ConfigProvider</code> + <code>theme.useToken()</code> + inline styles.
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s2">2. Color Palette &amp; Theme Tokens</h2>
+
+<h3>2.1 Token primari (ConfigProvider)</h3>
+<pre><code>// App.tsx — Ant Design theme configuration
+&lt;ConfigProvider
+  theme={{
+    algorithm: theme.defaultAlgorithm,
+    token: {
+      colorPrimary: '#7BAF2E',   // Verde MESA
+      borderRadius: 6,            // Border radius globale
+    },
+  }}
+&gt;</code></pre>
+
+<h3>2.2 Palette colori derivati</h3>
+<p>Ant Design genera automaticamente varianti dal <code>colorPrimary</code>. Ecco i valori computati:</p>
+
+<table>
+  <tr><th>Token</th><th>Valore</th><th>Uso</th></tr>
+  <tr><td><span class="swatch" style="background:#7BAF2E"></span><code>colorPrimary</code></td><td><code>#7BAF2E</code></td><td>Accent principale, selected menu item, avatar, bottoni primari</td></tr>
+  <tr><td><span class="swatch" style="background:#95C11F"></span><code>#95C11F</code> (logo)</td><td><code>#95C11F</code></td><td>Logo "M" e dot — piu' vivace del primary</td></tr>
+  <tr><td><span class="swatch" style="background:#f6ffed"></span><code>colorPrimaryBg</code></td><td><code>#f6ffed</code></td><td>Background menu item selezionato</td></tr>
+  <tr><td><span class="swatch" style="background:#ffffff"></span><code>colorBgContainer</code></td><td><code>#ffffff</code></td><td>Sfondo sidebar e content area</td></tr>
+  <tr><td><span class="swatch" style="background:#f0f0f0"></span><code>colorBorderSecondary</code></td><td><code>#f0f0f0</code></td><td>Bordi separatori (logo area, quick nav, user section)</td></tr>
+  <tr><td><span class="swatch" style="background:#f5f5f5"></span><code>colorBgTextHover</code></td><td><code>#f5f5f5</code></td><td>Hover su quick nav items</td></tr>
+  <tr><td><span class="swatch" style="background:rgba(0,0,0,0.88)"></span><code>colorText</code></td><td><code>rgba(0,0,0,0.88)</code></td><td>Testo principale menu</td></tr>
+  <tr><td><span class="swatch" style="background:rgba(0,0,0,0.45)"></span><code>colorTextSecondary</code></td><td><code>rgba(0,0,0,0.45)</code></td><td>Testo secondario, icone</td></tr>
+  <tr><td><span class="swatch" style="background:#BDBDBD"></span><code>#BDBDBD</code></td><td><code>#BDBDBD</code></td><td>Logo "ESA" lettere (light mode)</td></tr>
+  <tr><td><span class="swatch" style="background:#8c8c8c"></span><code>#8c8c8c</code></td><td><code>#8c8c8c</code></td><td>Toggle button (collapse/expand)</td></tr>
+  <tr><td><span class="swatch" style="background:#595959"></span><code>#595959</code></td><td><code>#595959</code></td><td>User name in footer</td></tr>
+</table>
+
+<h3>2.3 Background &amp; Superfici</h3>
+<table>
+  <tr><th>Superficie</th><th>Colore</th><th>Effetto</th></tr>
+  <tr><td>Page background</td><td><code>#f5f5f5</code> (Ant Layout default)</td><td>Grigio chiaro sotto al contenuto</td></tr>
+  <tr><td>Sidebar</td><td><code>#ffffff</code></td><td>Bianco puro</td></tr>
+  <tr><td>Content area</td><td><code>#ffffff</code></td><td>Card bianca con border-radius 8px</td></tr>
+  <tr><td>Menu item hover</td><td><code>#f5f5f5</code></td><td>Grigio leggero</td></tr>
+  <tr><td>Menu item selected</td><td><code>#f6ffed</code></td><td>Verde chiarissimo (tinta del primary)</td></tr>
+  <tr><td>Submenu expanded bg</td><td><code>#fafafa</code></td><td>Lievissimo grigio per gruppo aperto</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s3">3. Typography</h2>
+
+<table>
+  <tr><th>Elemento</th><th>Font Family</th><th>Size</th><th>Weight</th><th>Color</th></tr>
+  <tr><td>Menu item label</td><td><code>-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif</code></td><td><code>14px</code></td><td><code>400</code></td><td><code>rgba(0,0,0,0.88)</code></td></tr>
+  <tr><td>Menu group label</td><td>Stesso</td><td><code>14px</code></td><td><code>400</code></td><td><code>rgba(0,0,0,0.88)</code></td></tr>
+  <tr><td>Menu item selected</td><td>Stesso</td><td><code>14px</code></td><td><code>600</code></td><td><code>#7BAF2E</code></td></tr>
+  <tr><td>Quick nav label</td><td>Stesso</td><td><code>14px</code></td><td><code>400</code></td><td><code>rgba(0,0,0,0.88)</code></td></tr>
+  <tr><td>User name (footer)</td><td>Stesso</td><td><code>14px</code></td><td><code>400</code></td><td><code>#595959</code></td></tr>
+  <tr><td>Logo "MESA."</td><td><code>'Helvetica Neue', 'Arial', 'Inter', system-ui, sans-serif</code></td><td>SVG 42px</td><td><code>200</code> (ultralight)</td><td>"M" <code>#95C11F</code>, "ESA" <code>#BDBDBD</code></td></tr>
+  <tr><td>Menu icons</td><td>@ant-design/icons (SVG)</td><td><code>14px</code></td><td>—</td><td>Ereditato dal label</td></tr>
+</table>
+
+<div class="note">
+  <strong>Font stack Ant Design 5:</strong> Il font system di default e' <code>-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif</code>. Non viene sovrascritta nel progetto.
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s4">4. Layout Generale (Shell)</h2>
+
+<div class="ascii-box">
++---+----------------------------------------------+
+|   |                                              |
+| S |              Content Area                    |
+| I |           (white card, radius 8px)           |
+| D |                                              |
+| E |          margin: 12px from edges             |
+| B |          padding: 16px inside                |
+| A |                                              |
+| R |                                              |
++---+----------------------------------------------+
+240px              flex: 1 (remainder)
+</div>
+
+<pre><code>// Layout shell
+&lt;Layout style={{ height: '100vh', overflow: 'hidden' }}&gt;
+  &lt;Sider width={240} collapsedWidth={48} /&gt;
+  &lt;Layout style={{ overflow: 'hidden' }}&gt;
+    &lt;Content style={{
+      margin: 12,
+      padding: 16,
+      background: '#fff',
+      borderRadius: 8,   // token.borderRadiusLG
+      overflow: 'auto'
+    }} /&gt;
+  &lt;/Layout&gt;
+&lt;/Layout&gt;</code></pre>
+
+<table>
+  <tr><th>Proprieta'</th><th>Expanded</th><th>Collapsed</th></tr>
+  <tr><td>Sidebar width</td><td><code>240px</code></td><td><code>48px</code></td></tr>
+  <tr><td>Layout height</td><td><code>100vh</code></td><td><code>100vh</code></td></tr>
+  <tr><td>Content margin</td><td><code>12px</code> (tutti i lati)</td><td>Uguale</td></tr>
+  <tr><td>Content padding</td><td><code>16px</code></td><td>Uguale</td></tr>
+  <tr><td>Content border-radius</td><td><code>8px</code></td><td>Uguale</td></tr>
+  <tr><td>Sidebar border-right</td><td><code>1px solid #f0f0f0</code></td><td>Uguale</td></tr>
+  <tr><td>Sidebar overflow</td><td><code>hidden</code> (scroll interno)</td><td>Uguale</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s5">5. Sidebar — Struttura &amp; Dimensioni</h2>
+
+<p>La sidebar e' composta da 4 zone verticali in un flex column:</p>
+
+<div class="ascii-box">
++================================+
+|  ZONE A — Logo + Toggle        |   44px (fisso)
+|  border-bottom: 1px #f0f0f0    |
++================================+
+|  ZONE B — Quick Nav             |   ~172px (4 items x 40px + padding)
+|  Home, Favorites, Search,      |
+|  Notifications                  |
+|  border-bottom: 1px #f0f0f0    |
++================================+
+|  ZONE C — Menu (scrollable)     |   flex: 1 (tutto lo spazio rimanente)
+|  Dashboard                      |
+|  Administration ▾               |
+|    Users                        |
+|    Roles & Permissions          |
+|  ERM Setup ▾                    |
+|    Org Structure                |
+|    ...                          |
+|  Processes                      |
+|  Risk Management ▾              |
+|  ...                            |
++================================+
+|  ZONE D — User Profile          |   ~52px (fisso)
+|  border-top: 1px #f0f0f0       |
++================================+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s6">6. Sidebar — Zone (4 aree)</h2>
+
+<h3>6.1 ZONA A — Logo + Toggle (44px)</h3>
+
+<div class="card">
+<table>
+  <tr><th>Proprieta'</th><th>Valore</th></tr>
+  <tr><td>Altezza</td><td><code>44px</code></td></tr>
+  <tr><td>Display</td><td><code>flex</code>, <code>align-items: center</code>, <code>justify-content: center</code></td></tr>
+  <tr><td>Border bottom</td><td><code>1px solid #f0f0f0</code></td></tr>
+  <tr><td>Flex-shrink</td><td><code>0</code> (non si comprime)</td></tr>
+  <tr><td>Logo</td><td>SVG centrato, <code>height: 22px</code></td></tr>
+  <tr><td>Toggle button</td><td><code>position: absolute; right: 4px; top: 50%; transform: translateY(-50%)</code></td></tr>
+  <tr><td>Toggle icon</td><td><code>MenuFoldOutlined</code> / <code>MenuUnfoldOutlined</code></td></tr>
+  <tr><td>Toggle color</td><td><code>#8c8c8c</code></td></tr>
+  <tr><td>Toggle tipo</td><td>Ant Button <code>type="text"</code>, <code>size="small"</code></td></tr>
+</table>
+
+<h4>Logo SVG</h4>
+<pre><code>// Expanded: viewBox="0 0 180 44", height 22px
+// "M"   → fill="#95C11F", fontWeight 200, fontSize 42
+// "ESA" → fill="#BDBDBD", fontWeight 200, fontSize 42
+// "."   → rect 8x8, rx=1, fill="#95C11F"
+
+// Collapsed: viewBox="0 0 36 40", solo "M" verde
+// font: 'Helvetica Neue', 'Arial', 'Inter', system-ui, sans-serif</code></pre>
+</div>
+
+<h3>6.2 ZONA B — Quick Navigation (~172px)</h3>
+
+<div class="card">
+<table>
+  <tr><th>Proprieta'</th><th>Valore</th></tr>
+  <tr><td>Padding container</td><td><code>4px 0</code> (top/bottom)</td></tr>
+  <tr><td>Border bottom</td><td><code>1px solid #f0f0f0</code></td></tr>
+  <tr><td>Flex-shrink</td><td><code>0</code></td></tr>
+</table>
+
+<h4>Singolo Quick Nav Item</h4>
+<table>
+  <tr><th>Proprieta'</th><th>Expanded</th><th>Collapsed</th></tr>
+  <tr><td>Height</td><td><code>40px</code></td><td><code>40px</code></td></tr>
+  <tr><td>Padding</td><td><code>0 16px 0 24px</code></td><td><code>0</code></td></tr>
+  <tr><td>Justify-content</td><td><code>flex-start</code></td><td><code>center</code></td></tr>
+  <tr><td>Gap (icon → label)</td><td><code>10px</code></td><td>—</td></tr>
+  <tr><td>Margin</td><td><code>0 4px</code></td><td><code>0 4px</code></td></tr>
+  <tr><td>Border-radius</td><td><code>6px</code></td><td><code>6px</code></td></tr>
+  <tr><td>Font size (icon)</td><td><code>14px</code></td><td><code>14px</code></td></tr>
+  <tr><td>Font size (label)</td><td><code>14px</code></td><td>nascosto</td></tr>
+  <tr><td>Color</td><td><code>rgba(0,0,0,0.88)</code></td><td>uguale</td></tr>
+  <tr><td>Hover background</td><td><code>#f5f5f5</code></td><td>uguale</td></tr>
+  <tr><td>Transition</td><td><code>background 0.15s</code></td><td>uguale</td></tr>
+  <tr><td>Tooltip (collapsed)</td><td>—</td><td>Ant Tooltip, <code>placement="right"</code></td></tr>
+</table>
+
+<p><strong>Items:</strong> Home (<code>HomeOutlined</code>), Favorites (<code>StarOutlined</code>), Search (<code>SearchOutlined</code>), Notifications (<code>BellOutlined</code> + badge count)</p>
+</div>
+
+<h3>6.3 ZONA C — Menu Scrollabile</h3>
+
+<div class="card">
+<table>
+  <tr><th>Proprieta'</th><th>Valore</th></tr>
+  <tr><td>Flex</td><td><code>1</code> (prende tutto lo spazio rimanente)</td></tr>
+  <tr><td>Overflow Y</td><td><code>auto</code> (scrollbar sottile)</td></tr>
+  <tr><td>Overflow X</td><td><code>hidden</code></td></tr>
+  <tr><td>Componente</td><td>Ant Design <code>&lt;Menu mode="inline" /&gt;</code></td></tr>
+  <tr><td>Border right</td><td><code>0</code> (rimossa, il bordo e' sul Sider)</td></tr>
+  <tr><td>Default open keys</td><td>Tutti i submenu aperti di default</td></tr>
+</table>
+
+<h4>Ant Design Menu Item (mode="inline") — Stili calcolati</h4>
+<table>
+  <tr><th>Stato</th><th>Background</th><th>Color</th><th>Font-weight</th><th>Border indicator</th></tr>
+  <tr><td>Default</td><td><code>transparent</code></td><td><code>rgba(0,0,0,0.88)</code></td><td><code>400</code></td><td>nessuno</td></tr>
+  <tr><td>Hover</td><td><code>#f5f5f5</code></td><td><code>rgba(0,0,0,0.88)</code></td><td><code>400</code></td><td>nessuno</td></tr>
+  <tr><td>Selected</td><td><code>#f6ffed</code></td><td><code>#7BAF2E</code></td><td><code>600</code></td><td><code>3px solid #7BAF2E</code> a destra</td></tr>
+  <tr><td>Submenu title</td><td><code>transparent</code></td><td><code>rgba(0,0,0,0.88)</code></td><td><code>400</code></td><td>nessuno</td></tr>
+  <tr><td>Submenu title hover</td><td><code>#f5f5f5</code></td><td><code>rgba(0,0,0,0.88)</code></td><td><code>400</code></td><td>nessuno</td></tr>
+</table>
+
+<h4>Menu Item Dimensioni</h4>
+<table>
+  <tr><th>Proprieta'</th><th>Root item</th><th>Child item (livello 2)</th></tr>
+  <tr><td>Height</td><td><code>40px</code></td><td><code>40px</code></td></tr>
+  <tr><td>Padding left</td><td><code>24px</code></td><td><code>48px</code></td></tr>
+  <tr><td>Padding right</td><td><code>16px</code></td><td><code>16px</code></td></tr>
+  <tr><td>Margin</td><td><code>4px 4px</code></td><td><code>4px 4px</code></td></tr>
+  <tr><td>Border-radius</td><td><code>6px</code></td><td><code>6px</code></td></tr>
+  <tr><td>Icon size</td><td><code>14px</code></td><td><code>14px</code></td></tr>
+  <tr><td>Gap icon → label</td><td><code>10px</code></td><td><code>10px</code></td></tr>
+</table>
+
+<h4>Menu Completo — Albero navigazione</h4>
+<table>
+  <tr><th>Item</th><th>Tipo</th><th>Icona</th><th>Permesso</th></tr>
+  <tr><td>Dashboard</td><td>Root</td><td><code>DashboardOutlined</code></td><td>—</td></tr>
+  <tr><td><strong>Administration</strong></td><td>Submenu</td><td><code>SettingOutlined</code></td><td><code>user_mgmt.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Users</td><td>Child</td><td><code>TeamOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Roles &amp; Permissions</td><td>Child</td><td><code>SafetyCertificateOutlined</code></td><td>—</td></tr>
+  <tr><td><strong>ERM Setup</strong></td><td>Submenu</td><td><code>BankOutlined</code></td><td><code>organization|goal|procedure.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Org Structure</td><td>Child</td><td><code>GlobalOutlined</code></td><td><code>organization.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Job Titles</td><td>Child</td><td><code>IdcardOutlined</code></td><td><code>organization.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Strategic Goals</td><td>Child</td><td><code>AimOutlined</code></td><td><code>goal.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Procedures</td><td>Child</td><td><code>BookOutlined</code></td><td><code>procedure.read</code></td></tr>
+  <tr><td>Processes</td><td>Root</td><td><code>ApartmentOutlined</code></td><td><code>process.read</code></td></tr>
+  <tr><td><strong>Risk Management</strong></td><td>Submenu</td><td><code>AlertOutlined</code></td><td><code>risk.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Risk Catalog</td><td>Child</td><td><code>FolderOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Risk Register</td><td>Child</td><td><code>AlertOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Risk Categories</td><td>Child</td><td><code>FolderOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Risk Appetite</td><td>Child</td><td><code>BarChartOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;KRI</td><td>Child</td><td><code>LineChartOutlined</code></td><td><code>kri.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Evaluations</td><td>Child</td><td><code>FormOutlined</code></td><td><code>scenario_evaluation.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Pending Approvals</td><td>Child</td><td><code>CheckSquareOutlined</code></td><td><code>scenario_evaluation.read</code></td></tr>
+  <tr><td><strong>Control Framework</strong></td><td>Submenu</td><td><code>ControlOutlined</code></td><td><code>control.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Controls</td><td>Child</td><td><code>SafetyCertificateOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Risk-Control Matrix</td><td>Child</td><td><code>TableOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Gap Analysis</td><td>Child</td><td><code>BarChartOutlined</code></td><td>—</td></tr>
+  <tr><td>Issues</td><td>Root</td><td><code>ExclamationCircleOutlined</code></td><td><code>issue.read</code></td></tr>
+  <tr><td>Reports</td><td>Root</td><td><code>FileTextOutlined</code></td><td><code>report.read</code></td></tr>
+  <tr><td><strong>ERM Reports</strong></td><td>Submenu</td><td><code>BarChartOutlined</code></td><td><code>report.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Heat Map</td><td>Child</td><td><code>TableOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Monitoring</td><td>Child</td><td><code>LineChartOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Comparison</td><td>Child</td><td><code>SwapOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Executive Overview</td><td>Child</td><td><code>DashboardOutlined</code></td><td>—</td></tr>
+  <tr><td>Attivita' Workflow</td><td>Root</td><td><code>CheckSquareOutlined</code></td><td>—</td></tr>
+  <tr><td><strong>Campaigns</strong></td><td>Submenu</td><td><code>RocketOutlined</code></td><td><code>campaign.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;All Campaigns</td><td>Child</td><td><code>RocketOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;New RA Campaign</td><td>Child</td><td><code>BarChartOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;My Tasks</td><td>Child</td><td><code>CheckSquareOutlined</code></td><td>—</td></tr>
+  <tr><td><strong>Mitigation Plan</strong></td><td>Submenu</td><td><code>ToolOutlined</code></td><td><code>mitigation.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Projects</td><td>Child</td><td><code>ProjectOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Actions</td><td>Child</td><td><code>UnorderedListOutlined</code></td><td>—</td></tr>
+  <tr><td>Training Materials</td><td>Root</td><td><code>ReadOutlined</code></td><td>—</td></tr>
+  <tr><td><strong>Configuration</strong></td><td>Submenu</td><td><code>AppstoreOutlined</code></td><td><code>config.read</code></td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Settings</td><td>Child</td><td><code>SettingOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Entity Attributes</td><td>Child</td><td><code>AppstoreOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Assessment Scales</td><td>Child</td><td><code>BarChartOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Process Hierarchy</td><td>Child</td><td><code>ApartmentOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Audit Log</td><td>Child</td><td><code>HistoryOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Import / Export</td><td>Child</td><td><code>SwapOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Dashboards</td><td>Child</td><td><code>DashboardOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Workflow</td><td>Child</td><td><code>NodeIndexOutlined</code></td><td>—</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;Email Templates</td><td>Child</td><td><code>MailOutlined</code></td><td>—</td></tr>
+</table>
+</div>
+
+<h3>6.4 ZONA D — User Profile (footer fisso)</h3>
+
+<div class="card">
+<table>
+  <tr><th>Proprieta'</th><th>Expanded</th><th>Collapsed</th></tr>
+  <tr><td>Border-top</td><td colspan="2"><code>1px solid #f0f0f0</code></td></tr>
+  <tr><td>Padding</td><td><code>8px</code></td><td><code>8px 4px</code></td></tr>
+  <tr><td>Flex-shrink</td><td colspan="2"><code>0</code></td></tr>
+  <tr><td>Button type</td><td colspan="2">Ant <code>type="text"</code>, width 100%</td></tr>
+  <tr><td>Button height</td><td><code>36px</code></td><td>auto</td></tr>
+  <tr><td>Avatar size</td><td><code>24px</code></td><td><code>28px</code></td></tr>
+  <tr><td>Avatar bg</td><td colspan="2"><code>#7BAF2E</code> (colorPrimary)</td></tr>
+  <tr><td>Avatar text</td><td colspan="2"><code>#fff</code>, 12px, iniziali nome+cognome</td></tr>
+  <tr><td>Name color</td><td><code>#595959</code></td><td>nascosto (tooltip)</td></tr>
+  <tr><td>Name size</td><td><code>14px</code></td><td>—</td></tr>
+  <tr><td>Overflow testo</td><td><code>text-overflow: ellipsis; white-space: nowrap</code></td><td>—</td></tr>
+  <tr><td>Click</td><td colspan="2">Ant <code>Dropdown</code>, <code>placement="topRight"</code></td></tr>
+  <tr><td>Dropdown items</td><td colspan="2">Nome (disabled), divider, Logout (danger red)</td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s8">8. Header / Top Bar</h2>
+
+<div class="info">
+  <strong>Design choice:</strong> MESA ERM <strong>non ha un header/top bar tradizionale</strong>. Il layout e' "sidebar-only" — la zona superiore del sidebar (Logo + Quick Nav) funge da header. Il content area occupa tutto lo spazio restante senza alcuna barra orizzontale in cima.
+</div>
+
+<h3>8.1 Come Replicare con un Header Classico</h3>
+
+<p>Se il nuovo applicativo richiede un header orizzontale, ecco come adattare il design MESA:</p>
+
+<div class="ascii-box">
+Opzione A: Senza header (come MESA)      Opzione B: Con header classico
+
++---+----------------------------+    +----------------------------------+
+|   |                            |    | Logo | Breadcrumb  | User | Bell |  48px
+| S |   Content                  |    +------+----------------------------+
+| I |                            |    |   S  |                            |
+| D |                            |    |   I  |     Content                |
+| E |                            |    |   D  |                            |
+| B |                            |    |   E  |                            |
+| A |                            |    +------+----------------------------+
+| R |                            |
++---+----------------------------+
+</div>
+
+<h4>Specifiche Header (se implementato)</h4>
+<table>
+  <tr><th>Proprieta'</th><th>Valore raccomandato (stile MESA)</th></tr>
+  <tr><td>Altezza</td><td><code>48px</code></td></tr>
+  <tr><td>Background</td><td><code>#ffffff</code></td></tr>
+  <tr><td>Border bottom</td><td><code>1px solid #f0f0f0</code></td></tr>
+  <tr><td>Padding</td><td><code>0 24px</code></td></tr>
+  <tr><td>Display</td><td><code>flex; align-items: center; justify-content: space-between</code></td></tr>
+  <tr><td>Shadow</td><td>Nessuna (design piatto)</td></tr>
+  <tr><td>Zona sinistra</td><td>Toggle sidebar + Breadcrumb</td></tr>
+  <tr><td>Zona destra</td><td>Search, Notifications, User avatar+dropdown</td></tr>
+  <tr><td>Z-index</td><td><code>10</code> (sopra al content)</td></tr>
+</table>
+
+<pre><code>// Header CSS (se necessario)
+.app-header {
+  height: 48px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: rgba(0,0,0,0.45);
+}
+
+.breadcrumb-current {
+  color: rgba(0,0,0,0.88);
+  font-weight: 500;
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s9">9. Scrollbar Personalizzate</h2>
+
+<pre><code>/* Webkit (Chrome, Edge, Safari) */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s10">10. Mobile &amp; Responsive</h2>
+
+<div class="note">
+  <strong>Stato attuale:</strong> MESA ERM <strong>non implementa</strong> gestione mobile/responsive. Non ci sono breakpoint, media query, <code>useBreakpoint</code>, ne' Drawer per la sidebar su mobile. Il layout e' progettato esclusivamente per desktop (1280px+).
+</div>
+
+<h3>10.1 Raccomandazioni per il Mobile</h3>
+
+<p>Per replicare il design MESA con supporto mobile, ecco le specifiche raccomandate:</p>
+
+<h4>Breakpoint</h4>
+<table>
+  <tr><th>Nome</th><th>Range</th><th>Sidebar</th><th>Header</th></tr>
+  <tr><td><span class="tag tag-green">Desktop</span></td><td><code>&gt;= 1024px</code></td><td>Visibile, expanded (240px)</td><td>Logo + Quick Nav nel sidebar</td></tr>
+  <tr><td><span class="tag tag-blue">Tablet</span></td><td><code>768px – 1023px</code></td><td>Collapsed (48px) di default</td><td>Come desktop</td></tr>
+  <tr><td><span class="tag tag-orange">Mobile</span></td><td><code>&lt; 768px</code></td><td>Nascosta → Drawer overlay</td><td>Top bar fissa con hamburger</td></tr>
+</table>
+
+<h4>Mobile: Drawer Sidebar</h4>
+<table>
+  <tr><th>Proprieta'</th><th>Valore</th></tr>
+  <tr><td>Componente</td><td>Ant Design <code>&lt;Drawer placement="left" /&gt;</code></td></tr>
+  <tr><td>Larghezza</td><td><code>280px</code></td></tr>
+  <tr><td>Trigger</td><td>Hamburger icon nel header mobile</td></tr>
+  <tr><td>Overlay</td><td><code>rgba(0,0,0,0.45)</code></td></tr>
+  <tr><td>Chiusura</td><td>Click overlay, swipe left, click X</td></tr>
+  <tr><td>Contenuto</td><td>Identico alla sidebar desktop (4 zone)</td></tr>
+  <tr><td>Z-index</td><td><code>1000</code></td></tr>
+</table>
+
+<h4>Mobile: Top Bar</h4>
+<table>
+  <tr><th>Proprieta'</th><th>Valore</th></tr>
+  <tr><td>Altezza</td><td><code>48px</code></td></tr>
+  <tr><td>Background</td><td><code>#ffffff</code></td></tr>
+  <tr><td>Border-bottom</td><td><code>1px solid #f0f0f0</code></td></tr>
+  <tr><td>Position</td><td><code>fixed; top: 0; width: 100%; z-index: 100</code></td></tr>
+  <tr><td>Contenuto sinistra</td><td>Hamburger (24px) + Logo MESA (h=20px)</td></tr>
+  <tr><td>Contenuto destra</td><td>Notifications badge + User avatar (28px)</td></tr>
+</table>
+
+<h4>Codice React raccomandato</h4>
+<pre><code>import { Grid, Drawer } from 'antd';
+const { useBreakpoint } = Grid;
+
+function AppShell() {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;   // &lt; 768px
+  const isTablet = screens.md && !screens.lg; // 768-1023px
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  if (isMobile) {
+    return (
+      &lt;Layout&gt;
+        &lt;MobileHeader onMenuClick={() =&gt; setDrawerOpen(true)} /&gt;
+        &lt;Drawer
+          placement="left"
+          width={280}
+          open={drawerOpen}
+          onClose={() =&gt; setDrawerOpen(false)}
+          styles={{ body: { padding: 0 } }}
+        &gt;
+          &lt;SidebarContent onNavigate={() =&gt; setDrawerOpen(false)} /&gt;
+        &lt;/Drawer&gt;
+        &lt;Content style={{ marginTop: 48 }} /&gt;
+      &lt;/Layout&gt;
+    );
+  }
+
+  return (
+    &lt;Layout style={{ height: '100vh' }}&gt;
+      &lt;Sider
+        width={240}
+        collapsedWidth={48}
+        collapsed={isTablet || sidebarCollapsed}
+      &gt;
+        &lt;SidebarContent /&gt;
+      &lt;/Sider&gt;
+      &lt;Content /&gt;
+    &lt;/Layout&gt;
+  );
+}</code></pre>
+
+<h4>CSS Media Queries (alternativa senza Ant Grid)</h4>
+<pre><code>/* Desktop: sidebar espansa */
+@media (min-width: 1024px) {
+  .sidebar { width: 240px; }
+  .mobile-header { display: none; }
+}
+
+/* Tablet: sidebar compressa */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar { width: 48px; }
+  .sidebar .menu-label { display: none; }
+  .mobile-header { display: none; }
+}
+
+/* Mobile: drawer + top bar */
+@media (max-width: 767px) {
+  .sidebar { display: none; }  /* nascosta, mostrata come Drawer */
+  .mobile-header { display: flex; }
+  .content { margin-top: 48px; padding: 8px; }
+}
+
+/* Touch targets — minimo 44x44 per WCAG */
+@media (pointer: coarse) {
+  .menu-item { min-height: 44px; }
+  .quick-nav-item { min-height: 44px; }
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s11">11. Animazioni &amp; Transizioni</h2>
+
+<table>
+  <tr><th>Elemento</th><th>Proprieta'</th><th>Durata</th><th>Easing</th></tr>
+  <tr><td>Sidebar collapse/expand</td><td><code>width</code></td><td><code>0.2s</code></td><td>Ant default (cubic-bezier)</td></tr>
+  <tr><td>Quick nav hover</td><td><code>background</code></td><td><code>0.15s</code></td><td>ease</td></tr>
+  <tr><td>Menu item hover</td><td><code>background, color</code></td><td><code>0.3s</code></td><td>Ant default</td></tr>
+  <tr><td>Submenu expand/collapse</td><td><code>height</code></td><td><code>0.3s</code></td><td>Ant default</td></tr>
+  <tr><td>Selected indicator</td><td><code>opacity</code></td><td><code>0.15s</code></td><td>ease</td></tr>
+  <tr><td>Tooltip appear</td><td><code>opacity, transform</code></td><td><code>0.1s</code></td><td>ease</td></tr>
+  <tr><td>Dropdown appear</td><td><code>opacity, transform</code></td><td><code>0.15s</code></td><td>ease</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s12">12. CSS Completo (Copy-Paste Ready)</h2>
+
+<p>CSS puro equivalente al design MESA, senza dipendenze da Ant Design. Usabile in qualsiasi framework:</p>
+
+<pre><code>/* ═══════════════════════════════════════════
+   MESA ERM — Sidebar CSS Specification
+   Framework-agnostic, copy-paste ready
+   ═══════════════════════════════════════════ */
+
+/* ── CSS Variables (Design Tokens) ── */
+:root {
+  /* Primary */
+  --color-primary:           #7BAF2E;
+  --color-primary-bg:        #f6ffed;
+  --color-primary-hover:     #6a9a26;
+  --color-primary-logo:      #95C11F;
+
+  /* Surfaces */
+  --color-bg-page:           #f5f5f5;
+  --color-bg-container:      #ffffff;
+  --color-bg-hover:          #f5f5f5;
+  --color-bg-submenu:        #fafafa;
+
+  /* Text */
+  --color-text-primary:      rgba(0, 0, 0, 0.88);
+  --color-text-secondary:    rgba(0, 0, 0, 0.45);
+  --color-text-user:         #595959;
+  --color-text-toggle:       #8c8c8c;
+  --color-text-logo-esa:     #BDBDBD;
+
+  /* Borders */
+  --color-border:            #f0f0f0;
+
+  /* Layout */
+  --sidebar-width:           240px;
+  --sidebar-collapsed-width: 48px;
+  --sidebar-logo-height:     44px;
+  --menu-item-height:        40px;
+  --content-margin:          12px;
+  --content-padding:         16px;
+
+  /* Typography */
+  --font-family:             -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                             'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-family-logo:        'Helvetica Neue', Arial, 'Inter', system-ui, sans-serif;
+  --font-size-base:          14px;
+  --font-size-icon:          14px;
+  --font-weight-normal:      400;
+  --font-weight-bold:        600;
+  --font-weight-logo:        200;
+
+  /* Radius */
+  --border-radius:           6px;
+  --border-radius-lg:        8px;
+
+  /* Transitions */
+  --transition-fast:         0.15s ease;
+  --transition-normal:       0.2s ease;
+  --transition-menu:         0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+/* ── Reset ── */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+}
+
+/* ── Scrollbar ── */
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 3px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.3); }
+* { scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.15) transparent; }
+
+/* ── Shell Layout ── */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--color-bg-container);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width var(--transition-normal);
+  flex-shrink: 0;
+}
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* ── Zone A: Logo ── */
+.sidebar-logo {
+  height: var(--sidebar-logo-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  position: relative;
+}
+.sidebar-logo .toggle-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--color-text-toggle);
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+  border-radius: var(--border-radius);
+}
+.sidebar-logo .toggle-btn:hover {
+  background: var(--color-bg-hover);
+}
+
+/* ── Zone B: Quick Nav ── */
+.sidebar-quicknav {
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  padding: 4px 0;
+}
+.quicknav-item {
+  display: flex;
+  align-items: center;
+  height: var(--menu-item-height);
+  padding: 0 16px 0 24px;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  border-radius: var(--border-radius);
+  margin: 0 4px;
+  transition: background var(--transition-fast);
+  text-decoration: none;
+}
+.quicknav-item:hover {
+  background: var(--color-bg-hover);
+}
+.quicknav-item .icon {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-icon);
+  flex-shrink: 0;
+}
+.sidebar.collapsed .quicknav-item {
+  padding: 0;
+  justify-content: center;
+}
+.sidebar.collapsed .quicknav-item .label {
+  display: none;
+}
+
+/* ── Zone C: Menu (scrollable) ── */
+.sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  height: var(--menu-item-height);
+  padding: 0 16px 0 24px;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  border-radius: var(--border-radius);
+  margin: 2px 4px;
+  transition: all var(--transition-menu);
+  text-decoration: none;
+  position: relative;
+}
+.menu-item:hover {
+  background: var(--color-bg-hover);
+}
+.menu-item.selected {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+.menu-item.selected::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
+  border-radius: 3px 0 0 3px;
+}
+.menu-item .icon {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-icon);
+  flex-shrink: 0;
+}
+/* Submenu children — extra indent */
+.menu-item.child {
+  padding-left: 48px;
+}
+/* Submenu group title */
+.menu-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--menu-item-height);
+  padding: 0 16px 0 24px;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  border-radius: var(--border-radius);
+  margin: 2px 4px;
+  transition: background var(--transition-fast);
+}
+.menu-group-title:hover {
+  background: var(--color-bg-hover);
+}
+.menu-group-title .chevron {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  transition: transform var(--transition-normal);
+}
+.menu-group-title.open .chevron {
+  transform: rotate(180deg);
+}
+.menu-group-children {
+  overflow: hidden;
+  transition: height var(--transition-menu);
+}
+
+/* Collapsed menu */
+.sidebar.collapsed .menu-item .label,
+.sidebar.collapsed .menu-group-title .label,
+.sidebar.collapsed .menu-group-title .chevron {
+  display: none;
+}
+.sidebar.collapsed .menu-item,
+.sidebar.collapsed .menu-group-title {
+  padding: 0;
+  justify-content: center;
+}
+
+/* ── Zone D: User Profile ── */
+.sidebar-user {
+  border-top: 1px solid var(--color-border);
+  padding: 8px;
+  flex-shrink: 0;
+}
+.user-button {
+  width: 100%;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  color: var(--color-text-user);
+  font-size: var(--font-size-base);
+  transition: background var(--transition-fast);
+}
+.user-button:hover {
+  background: var(--color-bg-hover);
+}
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar.collapsed .sidebar-user {
+  padding: 8px 4px;
+}
+.sidebar.collapsed .user-avatar {
+  width: 28px;
+  height: 28px;
+}
+.sidebar.collapsed .user-name {
+  display: none;
+}
+
+/* ── Content Area ── */
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.content-main {
+  flex: 1;
+  margin: var(--content-margin);
+  padding: var(--content-padding);
+  background: var(--color-bg-container);
+  border-radius: var(--border-radius-lg);
+  overflow: auto;
+}
+
+/* ═══ MOBILE ═══ */
+
+/* Mobile top bar */
+.mobile-header {
+  display: none;
+  height: 48px;
+  background: var(--color-bg-container);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+.mobile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Drawer overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 999;
+}
+.sidebar-overlay.visible {
+  display: block;
+}
+.sidebar-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform var(--transition-normal);
+}
+.sidebar-drawer.open {
+  transform: translateX(0);
+}
+
+/* ── Breakpoints ── */
+@media (max-width: 1023px) {
+  .sidebar { width: var(--sidebar-collapsed-width); }
+  .sidebar .quicknav-item .label { display: none; }
+  .sidebar .quicknav-item { padding: 0; justify-content: center; }
+  .sidebar .menu-item .label,
+  .sidebar .menu-group-title .label,
+  .sidebar .menu-group-title .chevron { display: none; }
+  .sidebar .menu-item,
+  .sidebar .menu-group-title { padding: 0; justify-content: center; }
+  .sidebar .user-name { display: none; }
+}
+
+@media (max-width: 767px) {
+  .sidebar { display: none; }
+  .mobile-header { display: flex; }
+  .content-main {
+    margin-top: calc(48px + var(--content-margin));
+    margin-left: var(--content-margin);
+    margin-right: var(--content-margin);
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (pointer: coarse) {
+  .menu-item,
+  .menu-group-title,
+  .quicknav-item {
+    min-height: 44px;
+  }
+}</code></pre>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2 id="s13">13. Wireframe ASCII — Riferimento Visuale</h2>
+
+<h3>13.1 Desktop Expanded (240px)</h3>
+<div class="ascii-box">
++--------------------------------------+--------------------------------------+
+|  [M]ESA.           [≡]               |                                      |
+|--------------------------------------|                                      |
+|  🏠 Home                             |                                      |
+|  ⭐ Favorites                        |       Content Area                   |
+|  🔍 Search                           |       (white card, r=8px)            |
+|  🔔 Notifications  (3)               |                                      |
+|--------------------------------------|       margin: 12px all sides         |
+|  📊 Dashboard                        |       padding: 16px                  |
+|  ⚙ Administration          ▾        |                                      |
+|      👥 Users                        |                                      |
+|      🔐 Roles & Permissions          |                                      |
+|  🏛 ERM Setup               ▾        |                                      |
+|      🌐 Org Structure                |                                      |
+|      💳 Job Titles                   |                                      |
+|      🎯 Strategic Goals              |                                      |
+|      📖 Procedures                   |                                      |
+|  🏢 Processes                        |                                      |
+|  ⚠ Risk Management          ▾        |                                      |
+|      📁 Risk Catalog                 |                                      |
+|      ⚠ Risk Register                |                                      |
+|      ...                             |                                      |
+|  🛡 Control Framework        ▾       |                                      |
+|      ...                             |                                      |
+|  ...                                 |                                      |
+|--------------------------------------|                                      |
+|  [SA] System Administrator           |                                      |
++--------------------------------------+--------------------------------------+
+|←----------- 240px -----------→|←------------- flex: 1 ----------------→|
+</div>
+
+<h3>13.2 Desktop Collapsed (48px)</h3>
+<div class="ascii-box">
++------+--------------------------------------+
+| [M]  |                                      |
+|------|                                      |
+|  🏠  |                                      |
+|  ⭐  |       Content Area                   |
+|  🔍  |                                      |
+|  🔔  |                                      |
+|------|                                      |
+|  📊  |                                      |
+|  ⚙  |                                      |
+|  🏛  |                                      |
+|  🏢  |                                      |
+|  ⚠  |                                      |
+|  🛡  |                                      |
+|  ❗  |                                      |
+|  ...  |                                      |
+|------|                                      |
+| [SA] |                                      |
++------+--------------------------------------+
+|←48px→|
+</div>
+
+<h3>13.3 Mobile (&lt; 768px)</h3>
+<div class="ascii-box">
++--------------------------------------+
+| [☰]  MESA.         🔔 [SA]          |  ← Mobile header (48px, fixed)
++--------------------------------------+
+|                                      |
+|          Content Area                |
+|          (full width - 16px)         |
+|                                      |
+|                                      |
++--------------------------------------+
+
+         Drawer (quando aperto):
+
++--overlay (rgba 0,0,0,0.45))--+------+
+| +----------------------------+      |
+| |  [M]ESA.           [✕]    |      |
+| |----------------------------| tap  |
+| |  🏠 Home                  |  to  |
+| |  ⭐ Favorites             |close |
+| |  🔍 Search                |      |
+| |  🔔 Notifications         |      |
+| |----------------------------+      |
+| |  📊 Dashboard             |      |
+| |  ⚙ Administration  ▾     |      |
+| |     👥 Users              |      |
+| |  ...                       |      |
+| |----------------------------+      |
+| |  [SA] System Admin         |      |
+| +----------------------------+      |
++-------280px----------+------+
+</div>
+
+<hr style="margin: 40px 0; border-color: #e9ecef;">
+<p style="text-align: center; color: var(--doc-muted); font-size: 13px;">
+  MESA ERM — Sidebar &amp; Navigation UI Specification v1.0<br>
+  Generato il 25/02/2026 per uso interno
+</p>
+
+</div>
+</body>
+</html>
