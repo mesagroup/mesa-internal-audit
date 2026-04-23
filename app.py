@@ -141,10 +141,9 @@ html, body, [class*="css"] {
 ════════════════════════════════════════ */
 [data-testid="stSidebar"] .stRadio { padding: 0 4px; }
 
-/* hide widget label */
+/* hide widget label only — never target option labels */
 [data-testid="stSidebar"] .stRadio > label,
-[data-testid="stSidebar"] .stRadio [data-testid="stWidgetLabel"],
-[data-testid="stSidebar"] .stRadio > div > label:first-child {
+[data-testid="stSidebar"] .stRadio [data-testid="stWidgetLabel"] {
   display: none !important;
 }
 
