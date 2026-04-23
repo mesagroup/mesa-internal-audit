@@ -395,6 +395,31 @@ button[title="Close sidebar"] {
 
 st.markdown(MESA_CSS, unsafe_allow_html=True)
 
+# Force sidebar open: clear localStorage state and click expand button if needed
+import streamlit.components.v1 as components
+components.html("""
+<script>
+try {
+  var p = window.parent;
+  // Remove any Streamlit sidebar-state keys from localStorage
+  var remove = [];
+  for (var i = 0; i < p.localStorage.length; i++) {
+    var k = p.localStorage.key(i);
+    if (k && (k.includes('sidebar') || k.includes('Sidebar') || k.includes('collapsed'))) {
+      remove.push(k);
+    }
+  }
+  remove.forEach(function(k) { p.localStorage.removeItem(k); });
+
+  // If sidebar is collapsed, click the expand button
+  setTimeout(function() {
+    var btn = p.document.querySelector('[data-testid="collapsedControl"] button');
+    if (btn) { btn.click(); }
+  }, 200);
+} catch(e) {}
+</script>
+""", height=0)
+
 # ── Session state ─────────────────────────────────────────────────────────────
 
 if "results" not in st.session_state:
