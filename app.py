@@ -58,7 +58,16 @@ html, body, [class*="css"] {
 
 /* ── Hide Streamlit chrome ── */
 #MainMenu, footer { visibility: hidden; }
-.stDeployButton, [data-testid="stToolbar"] { display: none !important; }
+.stDeployButton { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+
+/* ── Always show sidebar collapse/expand toggle ── */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
 
 /* ── Page background ── */
 .stApp,
