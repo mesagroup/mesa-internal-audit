@@ -62,33 +62,13 @@ html, body, [class*="css"] {
 .stDeployButton { display: none !important; }
 [data-testid="stToolbar"] { display: none !important; }
 
-/* ── Sidebar collapse/expand toggle — always on top ── */
-[data-testid="collapsedControl"],
-section[data-testid="collapsedControl"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 9999 !important;
-  position: fixed !important;
-  left: 0 !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-}
-[data-testid="collapsedControl"] button,
-section[data-testid="collapsedControl"] button {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  background: #ffffff !important;
-  border: 1px solid var(--border) !important;
-  border-left: none !important;
-  border-radius: 0 var(--radius) var(--radius) 0 !important;
-  width: 20px !important;
-  height: 48px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  box-shadow: 2px 0 4px rgba(0,0,0,.06) !important;
+/* ── Hide sidebar collapse button — sidebar always stays open ── */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCloseButton"],
+button[aria-label="Close sidebar"],
+button[aria-label="Collapse sidebar"],
+button[title="Close sidebar"] {
+  display: none !important;
 }
 
 /* ── Page background ── */
