@@ -44,24 +44,29 @@ CONTROLS_TREE: List[Control] = [
     ),
     Control(
         id="C02",
-        title="Vendor Evaluation & Sourcing Process",
+        title="Vendor Sourcing — Coerenza documentale RFQ / PO / Contratto",
         area="Vendor Management",
         description=(
-            "Verifica che il processo di valutazione e selezione dei fornitori "
-            "sia stato condotto in conformità con la procedura: RFQ, quotations, "
-            "award minutes, benchmarking e documentazione del single sourcing."
+            "Verifica la coerenza incrociata tra i tre documenti chiave di "
+            "un'iniziativa di sourcing: RFQ (Request for Quotation), Purchase "
+            "Order e Contratto. Controlla che vendor, importi, Payment Terms e "
+            "ownership delle firme siano allineati tra i documenti e conformi "
+            "alla procedura. NOTA: verifiche sul benchmarking periodico e "
+            "sullo storico delle approvazioni di single sourcing richiedono "
+            "accesso ai sistemi SRM/ERP e sono fuori scope per questa POC."
         ),
         check_points=[
-            "Esiste documentazione a supporto della selezione (RFQ, quotations, award minutes, comunicazioni, PR, PO, contratti)",
-            "Il sourcing è stato gestito dal Procurement e non dal business",
-            "I risultati della negoziazione sono documentati e archiviati (es. confronto prima quotation vs PO finale)",
-            "Per fornitori ricorrenti/single/strategici (solo 2 vendor) sono effettuati benchmark periodici sui prezzi di mercato",
-            "Per single sourcing (1 solo vendor) le ragioni sono documentate e approvate",
+            "Sono presenti tutti e tre i documenti (RFQ, PO, Contratto) riferiti alla stessa iniziativa di sourcing",
+            "Il vendor aggiudicato nel PO corrisponde a uno dei vendor invitati nella RFQ (no 'vendor a sorpresa')",
+            "Il vendor del Contratto coincide con il vendor del PO",
+            "Le condizioni economiche (importo, Payment Terms, SLA) del Contratto sono coerenti con quelle del PO",
+            "La RFQ e il PO sono emessi/firmati dal Procurement Department (ownership corretta), non esclusivamente dal business richiedente",
+            "Le firme di approvazione del PO rispettano la Delegation of Authority (per importi > 150.000€ è richiesta l'approvazione del CFO)",
         ],
         expected_documents=[
-            "RFQ inviate e quotations ricevute",
-            "Award minutes / verbali di aggiudicazione",
-            "Documentazione di benchmarking o giustificazione single sourcing",
+            "RFQ (.docx): oggetto della gara, elenco vendor invitati, perimetro tecnico/economico, firma dell'emittente",
+            "Purchase Order (.docx): vendor aggiudicato, importo, Payment Terms, SLA, firme di approvazione",
+            "Contratto (.docx): vendor, importo, condizioni economiche e di servizio, firme delle parti",
         ],
     ),
     Control(

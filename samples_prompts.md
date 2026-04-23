@@ -65,71 +65,236 @@ per ruolo. Le anomalie devono essere plausibili, non caricaturali.
 
 ---
 
-## Controllo C02 — Vendor Evaluation & Sourcing Process
+## Controllo C02 — Vendor Sourcing: coerenza RFQ / PO / Contratto
 
-### C02 — Documento CONFORME
+> **Scenario condiviso** per tutti e 6 i prompt di C02: gara per la "Fornitura
+> servizi IT cloud 2026 — Q1", valore stimato ~180.000€, ente richiedente
+> IT Department. Azienda medio-grande manifatturiera fittizia. Tutti i prompt
+> riutilizzano gli stessi identificatori (numero RFQ, PO, contratto) così che
+> il verificatore possa triangolare i 3 documenti. L'esito CONFORME richiede
+> RFQ + PO + Contratto coerenti tra loro; l'esito NON CONFORME nasce da
+> discrepanze **incrociate** che si vedono solo confrontando i tre file.
 
-```
-Genera un file Word (.docx) chiamato "C02_vendor_selection_dossier_conforme.docx"
-che simuli un dossier di selezione fornitore per la gara "Fornitura servizi IT
-cloud 2026 — Q1" di un'azienda medio-grande.
-
-Il documento deve contenere le seguenti sezioni:
-
-1. COPERTINA
-   - Oggetto della gara
-   - Valore stimato: 180.000€
-   - Ente richiedente: IT Department
-   - Gestito da: Procurement Department (indica referente con nome)
-
-2. RFQ
-   - Elenco di 3 fornitori invitati con date di invio RFQ
-
-3. QUOTATIONS RICEVUTE
-   - Tabella con 3 fornitori: Vendor A (175.000€), Vendor B (168.000€),
-     Vendor C (182.000€)
-
-4. NEGOZIAZIONE
-   - Note della trattativa con Vendor B (quotation vincente)
-   - Quotation iniziale 168.000€ → PO finale 162.500€ (sconto ottenuto)
-
-5. AWARD MINUTES
-   - Verbale di aggiudicazione firmato da: Procurement Manager, IT Director,
-     CFO (per importo > 150k€)
-   - Data, criteri di scelta (prezzo + SLA + referenze)
-
-6. PO / CONTRACT
-   - Riferimento PO-2026-0412 emesso a Vendor B
-
-Tono formale, aziendale. Usa nomi plausibili ma fittizi.
-```
-
-### C02 — Documento NON CONFORME
+### C02 — RFQ CONFORME
 
 ```
-Genera un file Word (.docx) chiamato "C02_vendor_selection_dossier_non_conforme.docx"
-che simuli un dossier di selezione fornitore per la gara "Fornitura servizi IT
-cloud 2026 — Q1" di un'azienda medio-grande.
+Genera un file Word (.docx) chiamato "C02_RFQ_conforme.docx" che simuli una
+Request for Quotation aziendale formale per la gara:
 
-Stessa struttura del file conforme (copertina, RFQ, quotations, negoziazione,
-award minutes, PO) ma con le seguenti anomalie deliberate:
+- Oggetto: "Fornitura servizi IT cloud 2026 — Q1"
+- Numero RFQ: RFQ-2026-0087
+- Data emissione: 12 gennaio 2026
+- Scadenza invio quotation: 31 gennaio 2026
+- Valore stimato: 180.000€
+- Ente richiedente: IT Department (referente: Marco Bianchi, IT Director)
+- Emessa e gestita da: Procurement Department
+  (referente: Laura Conti, Procurement Manager — firma in calce)
 
-1. Nella COPERTINA indica che il processo è stato "coordinato dal Responsabile IT"
-   senza menzione del Procurement Department (violazione: sourcing gestito dal
-   business invece che dal Procurement)
-2. Nella sezione RFQ indica che è stato contattato un solo fornitore
-   (Vendor B) perché "fornitore già consolidato" — SENZA giustificazione formale
-   di single sourcing e SENZA approvazione
-3. NON includere la sezione NEGOZIAZIONE (nessuna evidenza di trattativa)
-4. Nelle AWARD MINUTES: il verbale è firmato solo dal Responsabile IT, manca
-   la firma del Procurement Manager e del CFO (nonostante l'importo di 180k€
-   richieda escalation)
-5. Aggiungi una nota finale: "Benchmarking di mercato non effettuato da oltre
-   18 mesi."
+Il documento deve contenere:
 
-Le anomalie devono risultare plausibili in un contesto aziendale reale —
-niente di esagerato o caricaturale.
+1. INTESTAZIONE aziendale (nome fittizio, es. "Lombardia Manufacturing S.p.A.")
+   + data e numero RFQ.
+
+2. PERIMETRO DELLA FORNITURA
+   - Descrizione servizi richiesti (IaaS + PaaS, backup, SLA 99,5%,
+     supporto 24/7)
+   - Durata contrattuale: 24 mesi
+   - Modalità di pagamento attese: "60 giorni data fattura fine mese"
+
+3. VENDOR INVITATI (tabella a 3 righe)
+   - CloudStack Solutions S.r.l. — P.IVA fittizia — email inviata 12/01/2026
+   - Nimbus Tech Italia S.r.l. — P.IVA fittizia — email inviata 12/01/2026
+   - DataHarbor Europe S.p.A. — P.IVA fittizia — email inviata 12/01/2026
+
+4. CRITERI DI AGGIUDICAZIONE
+   - 60% prezzo, 25% SLA/qualità tecnica, 15% referenze
+
+5. FIRMA
+   - "Per il Procurement Department: Laura Conti, Procurement Manager"
+   - Data 12/01/2026
+
+Tono formale, aziendale, italiano. Nessuna anomalia.
 ```
+
+### C02 — RFQ NON CONFORME
+
+```
+Genera un file Word (.docx) chiamato "C02_RFQ_non_conforme.docx" che simuli la
+stessa RFQ di cui sopra (gara "Fornitura servizi IT cloud 2026 — Q1",
+RFQ-2026-0087, valore 180.000€), stessa struttura (intestazione, perimetro,
+vendor invitati, criteri, firma).
+
+Mantieni gli stessi 3 vendor invitati:
+- CloudStack Solutions S.r.l.
+- Nimbus Tech Italia S.r.l.
+- DataHarbor Europe S.p.A.
+
+Mantieni i Payment Terms attesi: "60 giorni data fattura fine mese".
+
+Inserisci però le seguenti anomalie (sottili, plausibili):
+
+1. La RFQ è emessa e firmata da **Marco Bianchi, IT Director** (business)
+   invece che dal Procurement Manager. In calce NON compare alcuna firma
+   Procurement. Nel corpo la dicitura è "Per l'IT Department" invece di
+   "Per il Procurement Department".
+2. Nel perimetro aggiungi questa riga in fondo: "Referente unico per
+   l'aggiudicazione: IT Department".
+
+Le anomalie qui non bastano da sole — l'irregolarità vera emerge dal confronto
+con PO e Contratto. Tono formale, non caricaturale.
+```
+
+### C02 — PO CONFORME
+
+```
+Genera un file Word (.docx) chiamato "C02_PO_conforme.docx" che simuli un
+Purchase Order aziendale in forma di documento formale (intestazione +
+tabella + firme).
+
+Dati del PO (tutti COERENTI con la RFQ-2026-0087):
+
+- Numero PO: PO-2026-0412
+- Data emissione: 10 febbraio 2026
+- Riferimento RFQ: RFQ-2026-0087
+- Vendor aggiudicato: **CloudStack Solutions S.r.l.**
+  (deve essere UNO dei 3 vendor invitati nella RFQ)
+- Importo: 162.500€ (quotation iniziale 168.000€, poi ridotta in negoziazione —
+  aggiungi una riga note: "Sconto negoziato 3,3% su quotation iniziale")
+- Payment Terms: "60 giorni data fattura fine mese" (come RFQ)
+- SLA: 99,5%
+- Durata: 24 mesi
+
+Struttura del documento:
+1. Intestazione azienda "Lombardia Manufacturing S.p.A." + numero PO + data
+2. Sezione "Fornitore" con ragione sociale CloudStack Solutions S.r.l.
+3. Tabella "Oggetto della fornitura" (descrizione, quantità/durata, importo)
+4. Sezione "Condizioni economiche": importo 162.500€, PT 60gg DFFM, SLA 99,5%
+5. Sezione "Riferimenti": RFQ-2026-0087, Award del 05/02/2026
+6. Sezione "Firme di approvazione" — DEVONO comparire TUTTE queste firme:
+   - Laura Conti — Procurement Manager (ownership)
+   - Marco Bianchi — IT Director (business sponsor)
+   - Giulia Romano — Chief Financial Officer
+     (escalation obbligatoria per importi > 150.000€)
+
+Tono formale. Nessuna anomalia.
+```
+
+### C02 — PO NON CONFORME
+
+```
+Genera un file Word (.docx) chiamato "C02_PO_non_conforme.docx" con la stessa
+struttura del PO conforme (intestazione, fornitore, oggetto, condizioni,
+riferimenti, firme).
+
+Dati da usare, con anomalie incrociate rispetto a RFQ-2026-0087:
+
+- Numero PO: PO-2026-0412
+- Data emissione: 10 febbraio 2026
+- Riferimento RFQ: RFQ-2026-0087
+- Vendor aggiudicato: **Cloud9 Enterprise S.r.l.**
+  (ATTENZIONE: questo vendor NON è fra i 3 invitati nella RFQ — anomalia
+  "vendor a sorpresa" rilevabile solo incrociando RFQ e PO)
+- Importo: 178.000€
+  (ATTENZIONE: non coerente con la quotation di riferimento della RFQ e
+  molto vicino al tetto stimato — nessuna nota di negoziazione)
+- Payment Terms indicati nel PO: "30 giorni data fattura"
+  (ATTENZIONE: diverso dai 60gg DFFM della RFQ)
+- SLA: 99,5%
+- Durata: 24 mesi
+
+Aggiungi in "Riferimenti" il rimando a RFQ-2026-0087 (ma senza una vera
+award minutes allegata, scrivi solo "Selezione interna").
+
+Firme di approvazione — DEVONO comparire SOLO queste:
+- Marco Bianchi — IT Director
+- (NESSUNA firma del Procurement Manager)
+- (NESSUNA firma del CFO, nonostante l'importo 178.000€ superi la soglia DoA
+  di 150.000€ che richiede escalation)
+
+Le anomalie devono essere plausibili: un PO reale con questi difetti passerebbe
+una prima occhiata distratta.
+```
+
+### C02 — Contratto CONFORME
+
+```
+Genera un file Word (.docx) chiamato "C02_contract_conforme.docx" che simuli
+un contratto di fornitura di servizi IT cloud. Stile giuridico-commerciale
+italiano, sobrio, 3-5 pagine.
+
+Dati del contratto (tutti COERENTI con PO-2026-0412):
+
+- Numero contratto: CT-2026-0189
+- Data: 20 febbraio 2026
+- Parti:
+  * Cliente: Lombardia Manufacturing S.p.A. (sede, C.F./P.IVA fittizi)
+  * Fornitore: **CloudStack Solutions S.r.l.** (stesso vendor del PO)
+- Oggetto: servizi IT cloud (IaaS + PaaS + backup) secondo il perimetro
+  tecnico già descritto nel PO-2026-0412
+- Valore complessivo: **162.500€** (identico al PO)
+- Payment Terms: **"60 giorni data fattura fine mese"** (identici al PO)
+- SLA: 99,5% (identico al PO)
+- Durata: 24 mesi dalla data di firma
+- Riferimenti espliciti: "Il presente contratto dà attuazione al
+  PO-2026-0412 del 10/02/2026, a seguito della RFQ-2026-0087."
+
+Struttura (articoli numerati):
+Art. 1 Oggetto — Art. 2 Corrispettivo e fatturazione (con PT) —
+Art. 3 SLA e penali — Art. 4 Durata — Art. 5 Riservatezza —
+Art. 6 Recesso — Art. 7 Foro competente.
+
+Firme finali in calce:
+- Per il Cliente: Laura Conti, Procurement Manager + Giulia Romano, CFO
+- Per il Fornitore: legale rappresentante CloudStack Solutions S.r.l.
+  (nome fittizio)
+
+Tono formale, nessuna anomalia.
+```
+
+### C02 — Contratto NON CONFORME
+
+```
+Genera un file Word (.docx) chiamato "C02_contract_non_conforme.docx" con la
+stessa struttura del contratto conforme (7 articoli, intestazione, firme).
+
+Dati da usare, progettati per essere INCOERENTI col PO-2026-0412 non conforme:
+
+- Numero contratto: CT-2026-0189
+- Data: 20 febbraio 2026
+- Parti:
+  * Cliente: Lombardia Manufacturing S.p.A.
+  * Fornitore: **CloudStack Solutions S.r.l.**
+    (ATTENZIONE: il PO-2026-0412 non conforme è intestato a Cloud9 Enterprise
+    S.r.l. — discrepanza vendor PO vs Contratto, rilevabile solo incrociando
+    i due documenti)
+- Valore complessivo: **162.500€**
+  (ATTENZIONE: il PO riporta 178.000€ — discrepanza di importo)
+- Payment Terms: **"90 giorni data fattura"**
+  (ATTENZIONE: diversi sia dalla RFQ — 60gg DFFM — sia dal PO — 30gg;
+  tre valori diversi sui tre documenti)
+- SLA: 99,5%
+- Durata: 24 mesi
+- Riferimenti: cita PO-2026-0412 e RFQ-2026-0087 come se fossero coerenti
+  (il contratto "finge" coerenza — sta all'auditor scoprire che non lo sono).
+
+Firme finali:
+- Per il Cliente: Marco Bianchi, IT Director
+  (ATTENZIONE: nessuna firma Procurement, nessuna firma CFO)
+- Per il Fornitore: legale rappresentante CloudStack Solutions S.r.l.
+
+Le anomalie devono emergere dal confronto con RFQ e PO — il Contratto, letto
+da solo, sembra un documento ordinato. È la triangolazione che lo inchioda.
+```
+
+> **Sintesi delle anomalie incrociate del set NON CONFORME** (cosa dovrebbe
+> trovare l'auditor confrontando i 3 file):
+> 1. RFQ firmata da IT Director invece che da Procurement Manager
+> 2. PO emesso a un vendor (Cloud9 Enterprise) NON presente nella RFQ
+> 3. Contratto intestato a un vendor diverso dal PO (CloudStack ≠ Cloud9)
+> 4. Importi disallineati: PO 178.000€ vs Contratto 162.500€
+> 5. Payment Terms con tre valori diversi sui tre documenti (60gg / 30gg / 90gg)
+> 6. PO non firmato dal CFO pur superando la soglia DoA di 150.000€
+> 7. Nessuna firma Procurement né su PO né su Contratto
 
 ---
 
@@ -197,15 +362,15 @@ su uno solo.
 
 ## Checklist di caricamento
 
-Dopo aver generato i 6 file con Cowork, caricali nell'UI Streamlit come segue.
+Dopo aver generato i file con Cowork, caricali nell'UI Streamlit come segue.
+Per dimostrare entrambi gli esiti, **esegui 6 verifiche separate**: un set di file alla volta.
+Per C02 vanno caricati **3 file insieme** (RFQ + PO + Contratto) perché il controllo si basa sulla triangolazione documentale.
 
-Per dimostrare entrambi gli esiti, **esegui 6 verifiche separate**: una sola coppia di file alla volta.
-
-| Controllo | File da caricare               | Esito atteso       |
-|-----------|--------------------------------|--------------------|
-| C01       | C01_PR_PO_register_conforme    | 🟢 Conforme        |
-| C01       | C01_PR_PO_register_non_conforme| 🔴 Non conforme    |
-| C02       | C02_vendor_selection_...conforme| 🟢 Conforme       |
-| C02       | C02_vendor_selection_...non_conforme| 🔴 Non conforme |
-| C03       | C03_top5_suppliers_...conforme | 🟢 Conforme        |
-| C03       | C03_top5_suppliers_...non_conforme | 🔴 Non conforme |
+| Controllo | File da caricare                                                                    | Esito atteso    |
+|-----------|-------------------------------------------------------------------------------------|-----------------|
+| C01       | C01_PR_PO_register_conforme.xlsx                                                    | 🟢 Conforme     |
+| C01       | C01_PR_PO_register_non_conforme.xlsx                                                | 🔴 Non conforme |
+| C02       | C02_RFQ_conforme.docx + C02_PO_conforme.docx + C02_contract_conforme.docx           | 🟢 Conforme     |
+| C02       | C02_RFQ_non_conforme.docx + C02_PO_non_conforme.docx + C02_contract_non_conforme.docx | 🔴 Non conforme |
+| C03       | C03_top5_suppliers_payments_conforme.xlsx                                           | 🟢 Conforme     |
+| C03       | C03_top5_suppliers_payments_non_conforme.xlsx                                       | 🔴 Non conforme |
