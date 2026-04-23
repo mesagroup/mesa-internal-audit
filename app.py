@@ -186,17 +186,28 @@ html, body, [class*="css"] {
   border-radius: 3px 0 0 3px;
 }
 
-/* Hide native radio input */
+/* Shrink native radio input to nothing */
 [data-testid="stSidebar"] .stRadio input[type="radio"] {
   position: absolute !important;
   opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: 0 !important;
   pointer-events: none !important;
 }
-/* Hide Streamlit's custom radio indicator (BaseWeb/Emotion-rendered circle) */
-[data-testid="stSidebar"] .stRadio [data-baseweb="radio"] { display: none !important; }
-[data-testid="stSidebar"] .stRadio label > span[class] { display: none !important; }
+/* Force all label content visible */
+[data-testid="stSidebar"] .stRadio label * {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+/* Force the markdown text color */
+[data-testid="stSidebar"] .stRadio [data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] .stRadio [data-testid="stMarkdownContainer"] p {
+  display: block !important;
+  color: inherit !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+}
 
 /* nav section labels */
 .nav-section-label {
