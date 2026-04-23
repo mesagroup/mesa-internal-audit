@@ -186,12 +186,17 @@ html, body, [class*="css"] {
   border-radius: 3px 0 0 3px;
 }
 
-/* hide radio input + custom indicator SVG */
-[data-testid="stSidebar"] .stRadio input[type="radio"],
-[data-testid="stSidebar"] .stRadio label > div:not([data-testid="stMarkdownContainer"]),
-[data-testid="stSidebar"] .stRadio label > span:not([data-testid="stMarkdownContainer"]) {
-  display: none !important;
+/* Hide native radio input */
+[data-testid="stSidebar"] .stRadio input[type="radio"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
 }
+/* Hide Streamlit's custom radio indicator (BaseWeb/Emotion-rendered circle) */
+[data-testid="stSidebar"] .stRadio [data-baseweb="radio"] { display: none !important; }
+[data-testid="stSidebar"] .stRadio label > span[class] { display: none !important; }
 
 /* nav section labels */
 .nav-section-label {
@@ -360,6 +365,10 @@ html, body, [class*="css"] {
 
 /* ── Alerts ── */
 [data-testid="stAlert"] { border-radius: var(--radius) !important; }
+
+/* ── Fix: neutralize default link color in markdown text ── */
+.main a { color: var(--text) !important; text-decoration: none !important; }
+.main a:hover { text-decoration: underline !important; }
 </style>
 """
 
@@ -417,14 +426,14 @@ def icon_fact_check():
 
 st.sidebar.markdown("""
 <div class="mesa-logo-area">
-  <svg viewBox="0 0 180 44" height="22" aria-label="MESA ERM">
+  <svg viewBox="0 0 148 44" height="22" aria-label="MESA ERM">
     <text x="4" y="34"
           font-family="'Helvetica Neue','Arial','Inter',system-ui,sans-serif"
           font-size="42" font-weight="200" fill="#95C11F">M</text>
     <text x="34" y="34"
           font-family="'Helvetica Neue','Arial','Inter',system-ui,sans-serif"
           font-size="42" font-weight="200" fill="#BDBDBD">ESA</text>
-    <rect x="138" y="10" width="8" height="8" rx="1" fill="#95C11F"/>
+    <rect x="127" y="10" width="8" height="8" rx="1" fill="#95C11F"/>
   </svg>
 </div>
 """, unsafe_allow_html=True)
