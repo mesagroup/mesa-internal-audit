@@ -55,7 +55,7 @@ html, body, [class*="css"] {
   border-right: 1px solid var(--border) !important;
 }
 [data-testid="stSidebar"] > div:first-child {
-  padding: 0 0 80px 0 !important;   /* room for user footer */
+  padding: 0 !important;
 }
 
 /* ── Sidebar sections ── */
@@ -79,7 +79,14 @@ html, body, [class*="css"] {
 
 /* ── Radio → nav items ── */
 [data-testid="stSidebar"] .stRadio { padding: 0 4px; }
-[data-testid="stSidebar"] .stRadio > label { display: none; }
+
+/* Hide widget label ("controllo") — target all Streamlit label wrappers */
+[data-testid="stSidebar"] .stRadio > label,
+[data-testid="stSidebar"] .stRadio [data-testid="stWidgetLabel"],
+[data-testid="stSidebar"] .stRadio > div > label:first-child {
+  display: none !important;
+}
+
 [data-testid="stSidebar"] .stRadio > div { gap: 2px !important; }
 
 [data-testid="stSidebar"] .stRadio div[data-testid="stMarkdownContainer"] p {
@@ -116,8 +123,11 @@ html, body, [class*="css"] {
   background: var(--primary);
   border-radius: 3px 0 0 3px;
 }
-/* hide radio circle */
-[data-testid="stSidebar"] .stRadio input[type="radio"] {
+
+/* Hide radio circle: input + custom SVG/div indicator before stMarkdownContainer */
+[data-testid="stSidebar"] .stRadio input[type="radio"],
+[data-testid="stSidebar"] .stRadio label > div:not([data-testid="stMarkdownContainer"]),
+[data-testid="stSidebar"] .stRadio label > span:not([data-testid="stMarkdownContainer"]) {
   display: none !important;
 }
 
@@ -149,16 +159,14 @@ html, body, [class*="css"] {
 
 /* ── User footer ── */
 .user-footer {
-  position: fixed;
-  bottom: 0;
-  width: 240px;
+  width: 100%;
   background: #fff;
   border-top: 1px solid var(--border);
   padding: 8px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  z-index: 10;
+  margin-top: 8px;
 }
 .user-avatar {
   width: 28px; height: 28px;
@@ -278,14 +286,24 @@ html, body, [class*="css"] {
 .stButton > button {
   border-radius: var(--radius) !important;
   font-size: 14px !important;
+  color: var(--text) !important;
 }
 .stButton > button[kind="primary"] {
   background: var(--primary) !important;
   border-color: var(--primary) !important;
+  color: #ffffff !important;
 }
 .stButton > button[kind="primary"]:hover {
   background: #1e2d5f !important;
   border-color: #1e2d5f !important;
+  color: #ffffff !important;
+}
+.stButton > button:disabled,
+.stButton > button[disabled] {
+  background: rgba(0,0,0,.04) !important;
+  border-color: var(--border) !important;
+  color: rgba(0,0,0,.25) !important;
+  cursor: not-allowed !important;
 }
 
 /* ── File uploader ── */
