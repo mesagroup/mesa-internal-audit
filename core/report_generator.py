@@ -1,6 +1,6 @@
 """
-Generazione del report di audit finale in formato PDF.
-Usa reportlab (puro Python, nessuna dipendenza esterna al sistema).
+Generazione del report di audit finale in formato PDF ed Excel.
+Usa reportlab per il PDF e openpyxl per l'Excel.
 """
 
 from __future__ import annotations
@@ -8,6 +8,10 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 from typing import List
+
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -245,4 +249,194 @@ def generate_pdf_report(
                 story.append(Paragraph(f"<b>{i}.</b> {m}", styles["BodyCustom"]))
 
     doc.build(story)
+    return output_path
+
+
+# ── Status label helpers ────────────────────────────────────────────────────
+
+_STATUS_LABELS = {
+    "conforme": "CONFORME",
+    "non_conforme": "NON CONFORME",
+    "parziale": "PARZIALE",
+    "non_verificabile": "NON VERIFICABILE",
+}
+
+_STATUS_FILLS = {
+    "conforme": PatternFill("solid", fgColor="1f7a1f"),
+    "non_conforme": PatternFill("solid", fgColor="b22222"),
+    "parziale": PatternFill("solid", fgColor="c78a00"),
+    "non_verificabile": PatternFill("solid", fgColor="666666"),
+}
+
+_HEADER_FILL = PatternFill("solid", fgColor="2c3e50")
+_SUBHEADER_FILL = PatternFill("solid", fgColor="34495e")
+_ALT_FILL = PatternFill("solid", fgColor="f5f5f5")
+_WHITE_FILL = PatternFill("solid", fgColor="FFFFFF")
+
+_THIN_BORDER = Border(
+    left=Side(style="thin", color="AAAAAA"),
+    right=Side(style="thin", color="AAAAAA"),
+    top=Side(style="thin", color="AAAAAA"),
+    bottom=Side(style="thin", color="AAAAAA"),
+)
+
+
+def _xl_header(cell, text: str):
+    cell.value = text
+    cell.font = Font(bold=True, color="FFFFFF", size=11)
+    cell.fill = _HEADER_FILL
+    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell.border = _THIN_BORDER
+
+
+def _xl_subheader(cell, text: str):
+    cell.value = text
+    cell.font = Font(bold=True, color="FFFFFF", size=10)
+    cell.fill = _SUBHEADER_FILL
+    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell.border = _THIN_BORDER
+
+
+def _xl_cell(cell, text: str, alt: bool = False, bold: bool = False):
+    cell.value = text
+    cell.font = Font(bold=bold, size=10)
+    cell.fill = _ALT_FILL if alt else _WHITE_FILL
+    cell.alignment = Alignment(vertical="top", wrap_text=True)
+    cell.border = _THIN_BORDER
+
+
+def _xl_status_cell(cell, status: str, alt: bool = False):
+    label = _STATUS_LABELS.get(status, status.upper())
+    cell.value = label
+    cell.font = Font(bold=True, color="FFFFFF", size=10)
+    cell.fill = _STATUS_FILLS.get(status, PatternFill("solid", fgColor="333333"))
+    cell.alignment = Alignment(horizontal="center", vertical="top")
+    cell.border = _THIN_BORDER
+
+
+def generate_excel_report(
+    results: List[VerificationResult],
+    output_path: str | Path,
+    title: str = "Internal Audit Report — Procure-to-Pay",
+) -> Path:
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    wb = openpyxl.Workbook()
+
+    # ── Sheet 1: Executive Summary ──────────────────────────────────────────
+    ws_summary = wb.active
+    ws_summary.title = "Executive Summary"
+
+    ws_summary.merge_cells("A1:F1")
+    title_cell = ws_summary["A1"]
+    title_cell.value = title
+    title_cell.font = Font(bold=True, size=14, color="FFFFFF")
+    title_cell.fill = PatternFill("solid", fgColor="1a252f")
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws_summary.row_dimensions[1].height = 30
+
+    ws_summary.merge_cells("A2:F2")
+    date_cell = ws_summary["A2"]
+    date_cell.value = f"Data esecuzione: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+    date_cell.font = Font(italic=True, size=10, color="555555")
+    date_cell.alignment = Alignment(horizontal="center")
+    ws_summary.row_dimensions[2].height = 18
+
+    total = len(results)
+    conformi = sum(1 for r in results if r.overall_status == "conforme")
+    non_conformi = sum(1 for r in results if r.overall_status == "non_conforme")
+    parziali = total - conformi - non_conformi
+
+    ws_summary.merge_cells("A3:F3")
+    stats_cell = ws_summary["A3"]
+    stats_cell.value = (
+        f"Controlli eseguiti: {total}  |  "
+        f"Conformi: {conformi}  |  "
+        f"Non conformi: {non_conformi}  |  "
+        f"Parziali: {parziali}"
+    )
+    stats_cell.font = Font(bold=True, size=10)
+    stats_cell.alignment = Alignment(horizontal="center")
+    ws_summary.row_dimensions[3].height = 18
+
+    headers = ["ID", "Controllo", "Esito", "CP Totali", "CP Non Conformi", "CP Conformi"]
+    for col, h in enumerate(headers, start=1):
+        _xl_header(ws_summary.cell(row=5, column=col), h)
+    ws_summary.row_dimensions[5].height = 22
+
+    for row_idx, r in enumerate(results, start=6):
+        alt = (row_idx % 2 == 0)
+        nc = sum(1 for cp in r.check_points if cp.status == "non_conforme")
+        ok = sum(1 for cp in r.check_points if cp.status == "conforme")
+        total_cp = len(r.check_points)
+        _xl_cell(ws_summary.cell(row=row_idx, column=1), r.control_id, alt, bold=True)
+        _xl_cell(ws_summary.cell(row=row_idx, column=2), r.control_title, alt)
+        _xl_status_cell(ws_summary.cell(row=row_idx, column=3), r.overall_status, alt)
+        _xl_cell(ws_summary.cell(row=row_idx, column=4), str(total_cp), alt)
+        _xl_cell(ws_summary.cell(row=row_idx, column=5), str(nc), alt)
+        _xl_cell(ws_summary.cell(row=row_idx, column=6), str(ok), alt)
+        ws_summary.row_dimensions[row_idx].height = 20
+
+    col_widths = [10, 50, 20, 12, 20, 15]
+    for col, w in enumerate(col_widths, start=1):
+        ws_summary.column_dimensions[get_column_letter(col)].width = w
+
+    ws_summary.freeze_panes = "A6"
+
+    # ── Sheet 2: Check Points dettaglio ────────────────────────────────────
+    ws_cp = wb.create_sheet("Check Points")
+    cp_headers = ["Controllo ID", "Titolo Controllo", "#", "Check Point", "Esito", "Evidenza", "Issue"]
+    for col, h in enumerate(cp_headers, start=1):
+        _xl_header(ws_cp.cell(row=1, column=col), h)
+    ws_cp.row_dimensions[1].height = 22
+
+    cp_row = 2
+    for r in results:
+        for i, cp in enumerate(r.check_points, start=1):
+            alt = (cp_row % 2 == 0)
+            _xl_cell(ws_cp.cell(row=cp_row, column=1), r.control_id, alt, bold=True)
+            _xl_cell(ws_cp.cell(row=cp_row, column=2), r.control_title, alt)
+            _xl_cell(ws_cp.cell(row=cp_row, column=3), str(i), alt)
+            _xl_cell(ws_cp.cell(row=cp_row, column=4), cp.check_point, alt)
+            _xl_status_cell(ws_cp.cell(row=cp_row, column=5), cp.status, alt)
+            _xl_cell(ws_cp.cell(row=cp_row, column=6), cp.evidence or "", alt)
+            _xl_cell(ws_cp.cell(row=cp_row, column=7), cp.issue or "", alt)
+            ws_cp.row_dimensions[cp_row].height = 40
+            cp_row += 1
+
+    cp_col_widths = [14, 40, 5, 50, 20, 40, 40]
+    for col, w in enumerate(cp_col_widths, start=1):
+        ws_cp.column_dimensions[get_column_letter(col)].width = w
+
+    ws_cp.freeze_panes = "A2"
+
+    # ── Sheet 3: Piani di mitigazione ──────────────────────────────────────
+    ws_mit = wb.create_sheet("Piani di Mitigazione")
+    mit_headers = ["Controllo ID", "Titolo Controllo", "Esito", "#", "Azione di Mitigazione"]
+    for col, h in enumerate(mit_headers, start=1):
+        _xl_header(ws_mit.cell(row=1, column=col), h)
+    ws_mit.row_dimensions[1].height = 22
+
+    mit_row = 2
+    for r in results:
+        if not r.mitigation_plan:
+            continue
+        for i, action in enumerate(r.mitigation_plan, start=1):
+            alt = (mit_row % 2 == 0)
+            _xl_cell(ws_mit.cell(row=mit_row, column=1), r.control_id, alt, bold=True)
+            _xl_cell(ws_mit.cell(row=mit_row, column=2), r.control_title, alt)
+            _xl_status_cell(ws_mit.cell(row=mit_row, column=3), r.overall_status, alt)
+            _xl_cell(ws_mit.cell(row=mit_row, column=4), str(i), alt)
+            _xl_cell(ws_mit.cell(row=mit_row, column=5), action, alt)
+            ws_mit.row_dimensions[mit_row].height = 40
+            mit_row += 1
+
+    mit_col_widths = [14, 40, 20, 5, 80]
+    for col, w in enumerate(mit_col_widths, start=1):
+        ws_mit.column_dimensions[get_column_letter(col)].width = w
+
+    ws_mit.freeze_panes = "A2"
+
+    wb.save(output_path)
     return output_path

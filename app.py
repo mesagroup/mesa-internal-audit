@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from core.controls_tree import CONTROLS_TREE, Control
 from core.document_loader import load_document
 from core.llm_verifier import LLMVerifier, VerificationResult
-from core.report_generator import generate_pdf_report
+from core.report_generator import generate_pdf_report, generate_excel_report
 
 load_dotenv()
 
@@ -539,21 +539,32 @@ st.sidebar.markdown("---")
 
 # Azioni
 if executed > 0:
-    if st.sidebar.button("Genera report PDF", type="primary", use_container_width=True):
+    if st.sidebar.button("Genera report", type="primary", use_container_width=True):
         results_list = [
             st.session_state.results[c.id]
             for c in CONTROLS_TREE
             if c.id in st.session_state.results
         ]
-        out_path = Path("reports") / f"audit_report_{os.getpid()}.pdf"
-        out_path.parent.mkdir(exist_ok=True)
-        generate_pdf_report(results_list, out_path)
-        with open(out_path, "rb") as f:
+        pid = os.getpid()
+        out_pdf = Path("reports") / f"audit_report_{pid}.pdf"
+        out_xlsx = Path("reports") / f"audit_report_{pid}.xlsx"
+        out_pdf.parent.mkdir(exist_ok=True)
+        generate_pdf_report(results_list, out_pdf)
+        generate_excel_report(results_list, out_xlsx)
+        with open(out_pdf, "rb") as f:
             st.sidebar.download_button(
                 "Scarica PDF",
                 f.read(),
                 file_name="audit_report.pdf",
                 mime="application/pdf",
+                use_container_width=True,
+            )
+        with open(out_xlsx, "rb") as f:
+            st.sidebar.download_button(
+                "Scarica Excel",
+                f.read(),
+                file_name="audit_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
 
