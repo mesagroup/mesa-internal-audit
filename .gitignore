@@ -26,3 +26,12 @@ Thumbs.db
 
 # Claude
 .claude/
+
+# SQLite DB (locale, non versionato)
+audit.db
+
+# Streamlit cache
+.streamlit/
+
+# Temp files unpacked
+unpacked_arch/
