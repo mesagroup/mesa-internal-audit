@@ -17,17 +17,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from auth.utils import require_login, get_current_user, role_label
 from ui.common import inject_css, render_sidebar_nav, badge_html
-from db.init_db import init_db
-from db import DB_PATH
 
+authenticator = require_login()
 inject_css()
-
-# Inizializza il DB alla prima esecuzione
-if not DB_PATH.exists():
-    init_db()
-
-render_sidebar_nav()
+render_sidebar_nav(authenticator)
 
 # ── Header ────────────────────────────────────────────────────────────────────
 

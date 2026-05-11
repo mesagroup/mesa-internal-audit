@@ -17,6 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from auth.utils import require_login, can_edit, is_auditee, role_label
 from ui.common import inject_css, render_sidebar_nav, badge_html
 from db.repositories import (
     get_all_plans, create_plan, update_plan_status,
@@ -25,8 +26,14 @@ from db.repositories import (
     get_all_controls, create_engagement, get_plan_completion,
 )
 
+authenticator = require_login()
 inject_css()
-render_sidebar_nav()
+render_sidebar_nav(authenticator)
+
+if is_auditee():
+    st.markdown("### Piano di Audit")
+    st.warning("Accesso non consentito al Piano di Audit per il ruolo Auditee.", icon="🔒")
+    st.stop()
 
 st.markdown(
     """

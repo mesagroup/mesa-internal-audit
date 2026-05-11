@@ -20,6 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from auth.utils import require_login, can_edit, get_current_username, role_label
 from ui.common import inject_css, render_sidebar_nav, badge_html, pending_badge
 from db.repositories import (
     get_all_controls, get_active_engagements, create_engagement,
@@ -28,8 +29,9 @@ from db.repositories import (
 from core.document_loader import load_document
 from core.llm_verifier import LLMVerifier
 
+authenticator = require_login()
 inject_css()
-render_sidebar_nav()
+render_sidebar_nav(authenticator)
 
 # ── Header ────────────────────────────────────────────────────────────────────
 
@@ -197,6 +199,10 @@ with col_status:
             unsafe_allow_html=True,
         )
 
+if run and not can_edit():
+    st.error("Solo Auditor e Head IA possono eseguire verifiche.", icon="🔒")
+    run = False
+
 if run:
     files_info = st.session_state[upload_key]
     documents = []
@@ -213,8 +219,8 @@ if run:
                 verifier = LLMVerifier()
                 paths = [p for _, p in files_info]
                 result = verifier.verify(control, documents, file_paths=paths)
-                # Persisti nel DB
-                ver_id = save_verification(engagement_id, control.id, result)
+                ver_id = save_verification(engagement_id, control.id, result,
+                                           user=get_current_username())
                 result._ver_id = ver_id  # attach for finding creation
                 st.session_state[result_key] = result
                 st.rerun()

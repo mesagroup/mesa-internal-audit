@@ -21,6 +21,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from auth.utils import require_login, can_edit, role_label
 from ui.common import inject_css, render_sidebar_nav, badge_html
 from db.repositories import (
     get_dashboard_counts,
@@ -30,10 +31,12 @@ from db.repositories import (
     get_active_engagements, get_all_engagements,
     get_recent_findings, get_engagement_summary,
     get_all_findings, get_all_action_plans,
+    get_audit_log, get_audit_log_count,
 )
 
+authenticator = require_login()
 inject_css()
-render_sidebar_nav()
+render_sidebar_nav(authenticator)
 
 # ── Palette MESA ──────────────────────────────────────────────────────────────
 GREEN   = "#7BAF2E"
@@ -85,8 +88,8 @@ st.markdown("---")
 # GRAFICI
 # ══════════════════════════════════════════════════════════════════════════════
 
-tab_charts, tab_plan, tab_export = st.tabs(
-    ["📊 Grafici", "📅 Completamento Piano", "📥 Export Report"]
+tab_charts, tab_plan, tab_export, tab_log = st.tabs(
+    ["📊 Grafici", "📅 Completamento Piano", "📥 Export Report", "🗒 Audit Log"]
 )
 
 with tab_charts:
@@ -337,3 +340,52 @@ with tab_export:
             file_name="action_plans_export.csv",
             mime="text/csv",
         )
+
+    if not can_edit():
+        st.info("Export PDF disponibile solo per Auditor e Head IA.", icon="🔒")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB AUDIT LOG
+# ══════════════════════════════════════════════════════════════════════════════
+
+with tab_log:
+    st.markdown("#### Audit Log operativo")
+    st.caption(
+        "Registro append-only delle operazioni effettuate nell'applicativo. "
+        "Finalità dimostrativa — per audit-grade serve un DB con WORM o event sourcing."
+    )
+
+    total_log = get_audit_log_count()
+
+    lc1, lc2 = st.columns([3, 2])
+    with lc1:
+        log_limit = st.slider("Record da visualizzare", 20, 500, 100, step=20, key="log_limit")
+    with lc2:
+        st.metric("Operazioni totali nel log", total_log)
+
+    log_entries = get_audit_log(limit=log_limit)
+
+    if not log_entries:
+        st.info("Nessuna operazione registrata.", icon="ℹ️")
+    else:
+        import pandas as pd
+
+        log_df = pd.DataFrame(log_entries)[
+            ["ts", "user_name", "action", "entity_type", "entity_id", "details"]
+        ]
+        log_df.columns = ["Timestamp", "Utente", "Azione", "Entità", "ID", "Dettagli"]
+
+        # Colora per tipo azione
+        action_colors = {
+            "create": "background-color:#f6ffed",
+            "delete": "background-color:#fff2f0",
+            "update_status": "background-color:#fffbe6",
+            "upsert": "background-color:#e6f7ff",
+        }
+
+        def color_action(val):
+            return action_colors.get(val, "")
+
+        styled_log = log_df.style.applymap(color_action, subset=["Azione"])
+        st.dataframe(styled_log, use_container_width=True, hide_index=True)

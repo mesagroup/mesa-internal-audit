@@ -205,8 +205,8 @@ def inject_css() -> None:
     )
 
 
-def render_sidebar_nav(current_page: str = "") -> None:
-    """Logo + navigazione modulare nella sidebar."""
+def render_sidebar_nav(authenticator=None) -> None:
+    """Logo + navigazione modulare + utente loggato nella sidebar."""
     st.sidebar.markdown(
         """
         <div class="mesa-logo-area">
@@ -231,21 +231,37 @@ def render_sidebar_nav(current_page: str = "") -> None:
     with st.sidebar:
         st.page_link("app.py",                    label="🏠  Home")
         st.page_link("pages/1_Anagrafica.py",     label="📋  Anagrafica")
+        st.page_link("pages/2_Risk.py",           label="📈  Risk Assessment")
         st.page_link("pages/3_Piano.py",          label="📅  Piano di Audit")
         st.page_link("pages/4_Engagement.py",     label="🔎  Engagement")
         st.page_link("pages/5_Findings.py",       label="⚠️  Findings & Remediation")
         st.page_link("pages/6_Reporting.py",      label="📊  Reporting")
 
     st.sidebar.markdown("---")
+
+    # Footer utente loggato
+    user_name = st.session_state.get("name", "Utente")
+    role      = st.session_state.get("role", "auditor")
+    from auth.utils import ROLE_LABELS, ROLE_INITIALS
+    initials  = ROLE_INITIALS.get(role, "??")
+    role_lbl  = ROLE_LABELS.get(role, role)
+
     st.sidebar.markdown(
-        """
+        f"""
         <div class="user-footer">
-          <div class="user-avatar">AU</div>
-          <span class="user-name-text">Auditor</span>
+          <div class="user-avatar">{initials}</div>
+          <div style="flex:1;overflow:hidden;">
+            <div class="user-name-text">{user_name}</div>
+            <div style="font-size:11px;color:var(--text-secondary);">{role_lbl}</div>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    if authenticator is not None:
+        with st.sidebar:
+            authenticator.logout(button_name="Esci", location="sidebar", key="sidebar_logout")
 
 
 # ── Badge helpers ─────────────────────────────────────────────────────────────

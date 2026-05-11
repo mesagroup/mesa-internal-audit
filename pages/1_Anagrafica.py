@@ -17,6 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from auth.utils import require_login, can_edit, role_label
 from ui.common import inject_css, render_sidebar_nav
 from db.repositories import (
     get_all_controls, upsert_control, delete_control, reset_controls_to_defaults,
@@ -24,8 +25,9 @@ from db.repositories import (
 )
 from core.controls_tree import Control
 
+authenticator = require_login()
 inject_css()
-render_sidebar_nav()
+render_sidebar_nav(authenticator)
 
 # ── Header ────────────────────────────────────────────────────────────────────
 
@@ -38,6 +40,9 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+if not can_edit():
+    st.info(f"Visualizzazione in sola lettura — ruolo: {role_label()}", icon="🔒")
 
 tab_controls, tab_owners = st.tabs(["📋 Controlli", "👤 Owner"])
 
@@ -53,10 +58,11 @@ with tab_controls:
     with col_title:
         st.markdown(f"**{len(controls)} controlli** registrati nel Control Universe.")
     with col_btn:
-        if st.button("↺ Reset to defaults", help="Ricarica i 3 controlli del POC (C01, C02, C03)"):
-            reset_controls_to_defaults()
-            st.success("Controlli ripristinati.", icon="✓")
-            st.rerun()
+        if can_edit():
+            if st.button("↺ Reset to defaults", help="Ricarica i 3 controlli del POC (C01, C02, C03)"):
+                reset_controls_to_defaults()
+                st.success("Controlli ripristinati.", icon="✓")
+                st.rerun()
 
     st.markdown("---")
 
@@ -85,27 +91,31 @@ with tab_controls:
 
             with col_actions:
                 st.markdown("<br><br>", unsafe_allow_html=True)
-                if st.button("💾 Salva", key=f"save_{ctrl.id}", type="primary", use_container_width=True):
-                    updated = Control(
-                        id=ctrl.id,
-                        title=new_title.strip(),
-                        area=new_area.strip(),
-                        description=new_desc.strip(),
-                        check_points=[l.strip() for l in new_cp.splitlines() if l.strip()],
-                        expected_documents=[l.strip() for l in new_docs.splitlines() if l.strip()],
-                    )
-                    upsert_control(updated)
-                    st.success("Salvato.", icon="✓")
-                    st.rerun()
+                if can_edit():
+                    if st.button("💾 Salva", key=f"save_{ctrl.id}", type="primary", use_container_width=True):
+                        updated = Control(
+                            id=ctrl.id,
+                            title=new_title.strip(),
+                            area=new_area.strip(),
+                            description=new_desc.strip(),
+                            check_points=[l.strip() for l in new_cp.splitlines() if l.strip()],
+                            expected_documents=[l.strip() for l in new_docs.splitlines() if l.strip()],
+                        )
+                        upsert_control(updated)
+                        st.success("Salvato.", icon="✓")
+                        st.rerun()
 
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🗑 Elimina", key=f"del_{ctrl.id}", use_container_width=True):
-                    delete_control(ctrl.id)
-                    st.rerun()
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if st.button("🗑 Elimina", key=f"del_{ctrl.id}", use_container_width=True):
+                        delete_control(ctrl.id)
+                        st.rerun()
 
     st.markdown("---")
 
     # ── Aggiungi nuovo controllo ─────────────────────────────────────────────
+
+    if not can_edit():
+        st.stop()
 
     with st.expander("➕ Aggiungi nuovo controllo"):
         n_id   = st.text_input("ID (es. C04)", key="new_id")

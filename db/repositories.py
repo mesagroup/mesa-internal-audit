@@ -559,6 +559,79 @@ def get_dashboard_counts() -> dict:
     }
 
 
+# ── Risk Scores ───────────────────────────────────────────────────────────────
+
+def get_risk_scores(year: int) -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM risk_scores WHERE year=? ORDER BY control_id", (year,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_risk_score(
+    control_id: str,
+    year: int,
+    likelihood: int,
+    impact: int,
+    notes: str = "",
+    user: str = "system",
+) -> None:
+    conn = get_conn()
+    conn.execute(
+        """INSERT INTO risk_scores (control_id, year, likelihood, impact, notes, scored_by)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(control_id, year) DO UPDATE SET
+             likelihood=excluded.likelihood, impact=excluded.impact,
+             notes=excluded.notes, scored_by=excluded.scored_by,
+             scored_at=datetime('now')""",
+        (control_id, year, likelihood, impact, notes, user),
+    )
+    _log(conn, user, "upsert", "risk_score", f"{control_id}/{year}",
+         f"L={likelihood} I={impact}")
+    conn.commit()
+    conn.close()
+
+
+def get_risk_ranking(year: int) -> list[dict]:
+    """Controlli ordinati per score (L×I) decrescente per l'anno dato."""
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT rs.control_id, rs.likelihood, rs.impact,
+                  rs.likelihood * rs.impact AS score,
+                  c.title, c.area
+           FROM risk_scores rs
+           LEFT JOIN controls c ON rs.control_id = c.id
+           WHERE rs.year=?
+           ORDER BY score DESC""",
+        (year,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+# ── Audit Log (read) ──────────────────────────────────────────────────────────
+
+def get_audit_log(limit: int = 100, offset: int = 0) -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT * FROM audit_log
+           ORDER BY ts DESC
+           LIMIT ? OFFSET ?""",
+        (limit, offset),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_audit_log_count() -> int:
+    conn = get_conn()
+    n = conn.execute("SELECT COUNT(*) FROM audit_log").fetchone()[0]
+    conn.close()
+    return n
+
+
 # ── Internal ──────────────────────────────────────────────────────────────────
 
 def _log(

@@ -80,6 +80,18 @@ CREATE TABLE IF NOT EXISTS audit_plan_items (
     created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS risk_scores (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    control_id  TEXT    NOT NULL,
+    year        INTEGER NOT NULL,
+    likelihood  INTEGER NOT NULL DEFAULT 3,  -- 1-5
+    impact      INTEGER NOT NULL DEFAULT 3,  -- 1-5
+    notes       TEXT    NOT NULL DEFAULT '',
+    scored_by   TEXT    NOT NULL DEFAULT 'system',
+    scored_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(control_id, year) ON CONFLICT REPLACE
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     ts          TEXT NOT NULL DEFAULT (datetime('now')),

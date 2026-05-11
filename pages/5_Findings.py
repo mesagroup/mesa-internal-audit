@@ -17,6 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from auth.utils import require_login, can_edit, is_auditee, is_head_ia, get_current_username, role_label
 from ui.common import inject_css, render_sidebar_nav, badge_html
 from db.repositories import (
     get_all_findings, update_finding_status,
@@ -24,8 +25,9 @@ from db.repositories import (
     get_all_action_plans,
 )
 
+authenticator = require_login()
 inject_css()
-render_sidebar_nav()
+render_sidebar_nav(authenticator)
 
 st.markdown(
     """
@@ -104,16 +106,28 @@ with tab_findings:
                 st.caption(f"Action plan: {ap_count} totali, {ap_open} aperti")
 
             with col_actions:
-                new_status = st.selectbox(
-                    "Aggiorna stato",
-                    ["open", "validated", "closed"],
-                    index=["open", "validated", "closed"].index(f["status"]),
-                    key=f"fstatus_{f['id']}",
-                )
-                if st.button("Aggiorna", key=f"fupd_{f['id']}", type="primary", use_container_width=True):
-                    update_finding_status(f["id"], new_status)
-                    st.success("Stato aggiornato.", icon="✓")
-                    st.rerun()
+                # Auditee: solo lettura sullo stato
+                allowed_statuses = ["open", "validated", "closed"]
+                if is_auditee():
+                    st.markdown(badge_html(f["status"]), unsafe_allow_html=True)
+                    st.caption("Sola lettura")
+                else:
+                    # Solo head_ia può validare e chiudere
+                    if not is_head_ia():
+                        allowed_statuses = ["open"]
+                    new_status = st.selectbox(
+                        "Aggiorna stato",
+                        allowed_statuses,
+                        index=min(allowed_statuses.index(f["status"])
+                                  if f["status"] in allowed_statuses else 0,
+                                  len(allowed_statuses) - 1),
+                        key=f"fstatus_{f['id']}",
+                    )
+                    if st.button("Aggiorna", key=f"fupd_{f['id']}", type="primary", use_container_width=True):
+                        update_finding_status(f["id"], new_status,
+                                              user=get_current_username())
+                        st.success("Stato aggiornato.", icon="✓")
+                        st.rerun()
 
             # ── Action Plan inline ────────────────────────────────────────────
             st.markdown("**Action Plan collegati:**")
