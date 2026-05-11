@@ -231,8 +231,10 @@ def render_sidebar_nav(current_page: str = "") -> None:
     with st.sidebar:
         st.page_link("app.py",                    label="🏠  Home")
         st.page_link("pages/1_Anagrafica.py",     label="📋  Anagrafica")
+        st.page_link("pages/3_Piano.py",          label="📅  Piano di Audit")
         st.page_link("pages/4_Engagement.py",     label="🔎  Engagement")
         st.page_link("pages/5_Findings.py",       label="⚠️  Findings & Remediation")
+        st.page_link("pages/6_Reporting.py",      label="📊  Reporting")
 
     st.sidebar.markdown("---")
     st.sidebar.markdown(

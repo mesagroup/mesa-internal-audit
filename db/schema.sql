@@ -59,6 +59,27 @@ CREATE TABLE IF NOT EXISTS action_plans (
     updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS audit_plans (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    year        INTEGER NOT NULL,
+    notes       TEXT    NOT NULL DEFAULT '',
+    status      TEXT    NOT NULL DEFAULT 'draft',  -- draft | active | closed
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS audit_plan_items (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id       INTEGER NOT NULL REFERENCES audit_plans(id),
+    control_id    TEXT    NOT NULL,
+    planned_date  TEXT,                          -- ISO date target
+    assigned_to   TEXT    NOT NULL DEFAULT '',
+    engagement_id INTEGER REFERENCES engagements(id),  -- set when engagement created
+    status        TEXT    NOT NULL DEFAULT 'planned',  -- planned | in_progress | completed
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     ts          TEXT NOT NULL DEFAULT (datetime('now')),

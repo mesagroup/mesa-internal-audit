@@ -350,6 +350,197 @@ def update_action_plan_status(
     conn.close()
 
 
+# ── Audit Plans ───────────────────────────────────────────────────────────────
+
+def get_all_plans() -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM audit_plans ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def create_plan(name: str, year: int, notes: str = "", user: str = "system") -> int:
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO audit_plans (name, year, notes) VALUES (?, ?, ?)",
+        (name, year, notes),
+    )
+    plan_id = cur.lastrowid
+    _log(conn, user, "create", "audit_plan", str(plan_id), f"name={name} year={year}")
+    conn.commit()
+    conn.close()
+    return plan_id
+
+
+def update_plan_status(plan_id: int, status: str, user: str = "system") -> None:
+    conn = get_conn()
+    conn.execute(
+        "UPDATE audit_plans SET status=?, updated_at=datetime('now') WHERE id=?",
+        (status, plan_id),
+    )
+    _log(conn, user, "update_status", "audit_plan", str(plan_id), f"status={status}")
+    conn.commit()
+    conn.close()
+
+
+def add_plan_item(
+    plan_id: int,
+    control_id: str,
+    planned_date: str | None,
+    assigned_to: str,
+    user: str = "system",
+) -> int:
+    conn = get_conn()
+    cur = conn.execute(
+        """INSERT INTO audit_plan_items (plan_id, control_id, planned_date, assigned_to)
+           VALUES (?, ?, ?, ?)""",
+        (plan_id, control_id, planned_date, assigned_to),
+    )
+    item_id = cur.lastrowid
+    _log(conn, user, "create", "plan_item", str(item_id), f"control={control_id}")
+    conn.commit()
+    conn.close()
+    return item_id
+
+
+def get_plan_items(plan_id: int) -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT pi.*, c.title AS control_title, c.area AS control_area,
+                  e.name AS engagement_name
+           FROM audit_plan_items pi
+           LEFT JOIN controls c ON pi.control_id = c.id
+           LEFT JOIN engagements e ON pi.engagement_id = e.id
+           WHERE pi.plan_id = ?
+           ORDER BY pi.planned_date ASC""",
+        (plan_id,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def link_engagement_to_item(item_id: int, engagement_id: int, user: str = "system") -> None:
+    conn = get_conn()
+    conn.execute(
+        """UPDATE audit_plan_items
+           SET engagement_id=?, status='in_progress', updated_at=datetime('now')
+           WHERE id=?""",
+        (engagement_id, item_id),
+    )
+    _log(conn, user, "link", "plan_item", str(item_id), f"engagement={engagement_id}")
+    conn.commit()
+    conn.close()
+
+
+def update_plan_item_status(item_id: int, status: str, user: str = "system") -> None:
+    conn = get_conn()
+    conn.execute(
+        "UPDATE audit_plan_items SET status=? WHERE id=?", (status, item_id)
+    )
+    _log(conn, user, "update_status", "plan_item", str(item_id), f"status={status}")
+    conn.commit()
+    conn.close()
+
+
+def delete_plan_item(item_id: int, user: str = "system") -> None:
+    conn = get_conn()
+    conn.execute("DELETE FROM audit_plan_items WHERE id=?", (item_id,))
+    _log(conn, user, "delete", "plan_item", str(item_id))
+    conn.commit()
+    conn.close()
+
+
+# ── Reporting queries ─────────────────────────────────────────────────────────
+
+def get_findings_by_severity() -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT severity, COUNT(*) AS count
+           FROM findings GROUP BY severity ORDER BY
+           CASE severity WHEN 'alto' THEN 1 WHEN 'medio' THEN 2 ELSE 3 END"""
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_findings_by_status() -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT status, COUNT(*) AS count FROM findings GROUP BY status"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_action_plans_by_status() -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT status, COUNT(*) AS count FROM action_plans GROUP BY status"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_plan_completion(plan_id: int) -> dict:
+    conn = get_conn()
+    total = conn.execute(
+        "SELECT COUNT(*) FROM audit_plan_items WHERE plan_id=?", (plan_id,)
+    ).fetchone()[0]
+    completed = conn.execute(
+        "SELECT COUNT(*) FROM audit_plan_items WHERE plan_id=? AND status='completed'",
+        (plan_id,),
+    ).fetchone()[0]
+    in_progress = conn.execute(
+        "SELECT COUNT(*) FROM audit_plan_items WHERE plan_id=? AND status='in_progress'",
+        (plan_id,),
+    ).fetchone()[0]
+    conn.close()
+    return {"total": total, "completed": completed, "in_progress": in_progress}
+
+
+def get_recent_findings(limit: int = 10) -> list[dict]:
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT f.*, e.name AS engagement_name
+           FROM findings f
+           LEFT JOIN engagements e ON f.engagement_id = e.id
+           ORDER BY f.detected_at DESC LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_engagement_summary(engagement_id: int) -> dict:
+    """Dati per il report PDF di un singolo engagement."""
+    conn = get_conn()
+    eng = conn.execute(
+        "SELECT * FROM engagements WHERE id=?", (engagement_id,)
+    ).fetchone()
+    verifications = conn.execute(
+        "SELECT * FROM verifications WHERE engagement_id=?", (engagement_id,)
+    ).fetchall()
+    findings = conn.execute(
+        "SELECT * FROM findings WHERE engagement_id=?", (engagement_id,)
+    ).fetchall()
+    action_plans = conn.execute(
+        """SELECT ap.* FROM action_plans ap
+           JOIN findings f ON ap.finding_id = f.id
+           WHERE f.engagement_id=?""",
+        (engagement_id,),
+    ).fetchall()
+    conn.close()
+    import json
+    return {
+        "engagement": dict(eng) if eng else {},
+        "verifications": [dict(v) for v in verifications],
+        "findings": [dict(f) for f in findings],
+        "action_plans": [dict(a) for a in action_plans],
+    }
+
+
 # ── Dashboard counts ──────────────────────────────────────────────────────────
 
 def get_dashboard_counts() -> dict:
