@@ -440,3 +440,138 @@ def generate_excel_report(
 
     wb.save(output_path)
     return output_path
+
+
+# ── Engagement report (con findings e action plan) ───────────────────────────
+
+def generate_engagement_pdf(
+    engagement: dict,
+    verifications: list[dict],
+    findings: list[dict],
+    action_plans: list[dict],
+    output_path: str | Path,
+) -> Path:
+    """Report PDF per singolo engagement: verifiche AI + findings + action plan."""
+    import json as _json
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    doc = SimpleDocTemplate(
+        str(output_path),
+        pagesize=A4,
+        rightMargin=1.8 * cm,
+        leftMargin=1.8 * cm,
+        topMargin=1.8 * cm,
+        bottomMargin=1.8 * cm,
+    )
+    styles = _styles()
+    story = []
+
+    eng_name = engagement.get("name", "—")
+    eng_date = engagement.get("created_at", "")[:10]
+
+    story.append(Paragraph(f"Engagement Report — {eng_name}", styles["H1Custom"]))
+    story.append(Paragraph(
+        f"Data apertura: {eng_date}  |  Generato il: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        styles["SmallCustom"],
+    ))
+    story.append(Spacer(1, 0.5 * cm))
+
+    # ── Riepilogo verifiche ──────────────────────────────────────────────────
+    story.append(Paragraph("Riepilogo Verifiche AI", styles["H2Custom"]))
+    if verifications:
+        ver_data = [["Controllo", "Esito", "Check point NC", "Data"]]
+        for v in verifications:
+            cps = _json.loads(v["check_points"]) if isinstance(v["check_points"], str) else v["check_points"]
+            nc = sum(1 for cp in cps if cp.get("status") == "non_conforme")
+            ver_data.append([
+                v["control_id"],
+                _status_badge(v["overall_status"]),
+                f"{nc}/{len(cps)}",
+                v["verified_at"][:10],
+            ])
+        ver_tbl = Table(ver_data, colWidths=[2.5 * cm, 4 * cm, 3.5 * cm, 3 * cm])
+        ver_tbl.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f5f5f5")]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ("ALIGN", (2, 0), (3, -1), "CENTER"),
+        ]))
+        story.append(ver_tbl)
+    else:
+        story.append(Paragraph("Nessuna verifica eseguita.", styles["BodyCustom"]))
+
+    # ── Findings ────────────────────────────────────────────────────────────
+    story.append(PageBreak())
+    story.append(Paragraph("Findings", styles["H2Custom"]))
+
+    SEV_COLORS = {
+        "alto": colors.HexColor("#b22222"),
+        "medio": colors.HexColor("#c78a00"),
+        "basso": colors.HexColor("#1f7a1f"),
+    }
+    STAT_COLORS_F = {
+        "open": colors.HexColor("#d46b08"),
+        "validated": colors.HexColor("#1f7a1f"),
+        "closed": colors.HexColor("#666666"),
+    }
+
+    if findings:
+        for f in findings:
+            sev_color  = SEV_COLORS.get(f["severity"], colors.black)
+            stat_color = STAT_COLORS_F.get(f["status"], colors.black)
+            story.append(Paragraph(
+                f'<font color="{sev_color.hexval()}"><b>[{f["severity"].upper()}]</b></font> '
+                f'{f["title"]}  '
+                f'<font color="{stat_color.hexval()}">({f["status"]})</font>',
+                styles["H3Custom"],
+            ))
+            story.append(Paragraph(
+                f'Controllo: {f["control_id"]}  |  Rilevato: {f["detected_at"][:10]}',
+                styles["SmallCustom"],
+            ))
+            if f.get("description"):
+                for line in f["description"].splitlines():
+                    if line.strip():
+                        story.append(Paragraph(line, styles["BodyCustom"]))
+
+            # Action plan per questo finding
+            ap_for_finding = [a for a in action_plans if a["finding_id"] == f["id"]]
+            if ap_for_finding:
+                ap_data = [["Azione", "Responsabile", "Scadenza", "Stato"]]
+                for ap in ap_for_finding:
+                    ap_data.append([
+                        Paragraph(ap["description"], styles["SmallCustom"]),
+                        ap["owner_name"],
+                        ap["due_date"],
+                        ap["status"],
+                    ])
+                ap_tbl = Table(ap_data, colWidths=[7 * cm, 3 * cm, 2.5 * cm, 2.5 * cm])
+                ap_tbl.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495e")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f9f9f9")]),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]))
+                story.append(Spacer(1, 0.15 * cm))
+                story.append(ap_tbl)
+            story.append(Spacer(1, 0.4 * cm))
+    else:
+        story.append(Paragraph("Nessun finding rilevato.", styles["BodyCustom"]))
+
+    doc.build(story)
+    return output_path
