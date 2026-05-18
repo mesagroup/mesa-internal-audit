@@ -64,16 +64,19 @@ def _load_xlsx(path: Path) -> str:
     from openpyxl import load_workbook
 
     wb = load_workbook(str(path), read_only=True, data_only=True)
-    parts = []
-    for sheet_name in wb.sheetnames:
-        ws = wb[sheet_name]
-        parts.append(f"## Foglio: {sheet_name}")
-        for row in ws.iter_rows(values_only=True):
-            if any(v is not None for v in row):
-                parts.append(
-                    "\t".join("" if v is None else str(v) for v in row)
-                )
-    return "\n".join(parts)
+    try:
+        parts = []
+        for sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            parts.append(f"## Foglio: {sheet_name}")
+            for row in ws.iter_rows(values_only=True):
+                if any(v is not None for v in row):
+                    parts.append(
+                        "\t".join("" if v is None else str(v) for v in row)
+                    )
+        return "\n".join(parts)
+    finally:
+        wb.close()
 
 
 def _load_csv(path: Path) -> str:

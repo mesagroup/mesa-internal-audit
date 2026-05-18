@@ -18,6 +18,7 @@ class Control:
     description: str
     check_points: List[str] = field(default_factory=list)
     expected_documents: List[str] = field(default_factory=list)
+    ctrl_type: str = "ai"   # 'ai' | 'manual'
 
 
 CONTROLS_TREE: List[Control] = [

@@ -24,6 +24,7 @@ from db.repositories import (
     get_plan_items, add_plan_item, delete_plan_item,
     link_engagement_to_item, update_plan_item_status,
     get_all_controls, create_engagement, get_plan_completion,
+    get_all_processes, get_controls_for_process,
 )
 
 authenticator = require_login()
@@ -67,7 +68,7 @@ with st.expander("➕ Crea nuovo Piano di Audit"):
             st.error("Il nome del piano è obbligatorio.")
         else:
             pid = create_plan(p_name.strip(), int(p_year), p_notes.strip())
-            st.success(f"Piano '{p_name}' creato (ID #{pid}).", icon="✓")
+            st.success(f"Piano '{p_name}' creato (ID #{pid}).", icon="✅")
             st.rerun()
 
 st.markdown("---")
@@ -79,6 +80,7 @@ st.markdown("---")
 plans = get_all_plans()
 controls = get_all_controls()
 ctrl_by_id = {c.id: c for c in controls}
+all_processes = get_all_processes()
 
 if not plans:
     st.info("Nessun piano creato. Usa il form sopra per creare il primo Piano di Audit.", icon="ℹ️")
@@ -120,6 +122,86 @@ for plan in plans:
         with hc3:
             st.metric("Totale", completion["total"])
             st.metric("In corso", completion["in_progress"])
+
+        st.markdown("---")
+
+        # ── Aggiungi controlli da un processo ─────────────────────────────────
+        if can_edit() and all_processes:
+            with st.expander("🏢 Aggiungi tutti i controlli di un Processo"):
+                proc_options = {
+                    f"{p['code']} — {p['name']}": p["id"]
+                    for p in all_processes
+                }
+                sel_proc_label = st.selectbox(
+                    "Seleziona il processo di partenza",
+                    options=list(proc_options.keys()),
+                    key=f"proc_sel_{plan['id']}",
+                )
+                sel_proc_id = proc_options[sel_proc_label]
+                proc_controls = get_controls_for_process(sel_proc_id)
+
+                if not proc_controls:
+                    st.info(
+                        "Nessun controllo associato a questo processo "
+                        "(verifica le relazioni in Anagrafica → Control universe).",
+                        icon="ℹ️",
+                    )
+                else:
+                    existing_ctrl_ids = {i["control_id"] for i in items}
+                    new_controls = [c for c in proc_controls
+                                    if c.id not in existing_ctrl_ids]
+                    already = [c for c in proc_controls
+                               if c.id in existing_ctrl_ids]
+
+                    st.markdown(f"**Catena {sel_proc_label.split(' — ')[0]} → controlli trovati:**")
+                    for c in proc_controls:
+                        type_badge = "🤖 AI" if c.ctrl_type == "ai" else "📋 Manuale"
+                        already_flag = " _(già nel piano)_" if c.id in existing_ctrl_ids else ""
+                        st.markdown(
+                            f"- **{c.id}** {type_badge} — {c.title} · `{c.area}`{already_flag}"
+                        )
+
+                    if new_controls:
+                        fp1, fp2, fp3 = st.columns([3, 2, 2])
+                        with fp1:
+                            st.caption(
+                                f"{len(new_controls)} controllo/i da aggiungere"
+                                + (f", {len(already)} già presenti" if already else "")
+                            )
+                        with fp2:
+                            bulk_assigned = st.text_input(
+                                "Assegnato a (tutti)",
+                                placeholder="es. Giorgio Manca",
+                                key=f"bulk_assigned_{plan['id']}",
+                            )
+                        with fp3:
+                            bulk_date = st.date_input(
+                                "Data prevista (tutti)",
+                                value=date.today(),
+                                key=f"bulk_date_{plan['id']}",
+                            )
+
+                        if st.button(
+                            f"Aggiungi {len(new_controls)} controllo/i al piano",
+                            type="primary",
+                            key=f"bulk_add_{plan['id']}",
+                        ):
+                            for c in new_controls:
+                                add_plan_item(
+                                    plan["id"], c.id,
+                                    str(bulk_date),
+                                    bulk_assigned.strip(),
+                                )
+                            st.success(
+                                f"{len(new_controls)} controllo/i aggiunti al piano.",
+                                icon="✅",
+                            )
+                            st.rerun()
+                    else:
+                        st.success(
+                            "Tutti i controlli di questo processo sono già nel piano.",
+                            icon="✅",
+                        )
 
         st.markdown("---")
 
@@ -221,7 +303,7 @@ for plan in plans:
                             st.success(
                                 f"Engagement '{eng_name_auto}' creato. "
                                 "Vai a **Engagement** per eseguire la verifica.",
-                                icon="✓",
+                                icon="✅",
                             )
                             st.rerun()
                 with ic5:
